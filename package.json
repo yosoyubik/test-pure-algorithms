@@ -1,0 +1,23 @@
+{
+  "name": "test-urbit-algorithms",
+  "version": "0.0.1",
+  "description": "Unit tests for pure algorithms in urbit",
+  "main": "node install.js",
+  "scripts": {
+    "start": "node install.js",
+    "build": "gulp",
+    "serve": "gulp watch"
+  },
+  "author": "Tlon Corp",
+  "license": "MIT",
+  "repository": "https://github.com/yosoyubik/test-urbit-algorithms",
+  "devDependencies": {
+    "gulp": "^4.0.0"
+  },
+  "dependencies": {
+    "fs-extra": "^8.1.0",
+    "gulp-cli": "2.2.0",
+    "mv": "^2.1.1",
+    "promise": "^8.0.3"
+  }
+}

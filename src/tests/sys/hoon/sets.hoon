@@ -15,27 +15,29 @@
 ::  Test Data
 ::
 |%
-
-++  ascending      ~[1 2 3 4 5 6 7] ::(gulf 0 7)           ::
-++  descending     ~[7 6 5 4 3 2 1] ::(flop ascending) ::~[6 5 4 3 2 1 0]
-++  unsorted       ~[1 6 3 5 7 2 4]
-++  duplicates     ~[1 1 7 4 6 9 4]
-++  lists          :~  descending
-                       ascending
-                       unsorted
-                       duplicates
-                   ==
-++  uno            ~[42]
-++  dos            ~[6 9]
-++  tres           ~[1 0 1]
-++  empty          ~
-++  sets           (turn lists list-to-set)
-++  length         7
-++  unqueue
-  .
+++  uno  ~[42]
+++  dos  ~[6 9]
+++  tre  ~[1 0 1]
+++  asc  ~[1 2 3 4 5 6 7] ::         ::
+++  des  ~[7 6 5 4 3 2 1] ::(flop ascending) ::~[6 5 4 3 2 1 0]
+++  uns  ~[1 6 3 5 7 2 4]
+++  dup  ~[1 1 7 4 6 9 4]
+++  nul  ~
+++  lis  (limo ~[uno dos tre asc des uns dup])
+++  all  (turn lis list-to-set)
 :: +|  %expected-values
-++  uni-expected   `(list @)`~[8 8 8 9]
-++  wyt-expected   `(list @)`~[7 7 7 5]
+++  tap-expected
+  (limo ~[uno dos ~[1 0] asc des uns ~[9 7 6 4 1]])
+  :: %+  roll
+  ::   (turn lis |=(l=(list @) (sort l gth)))
+  :: |=  [e=@ l=(list @)]
+  :: ^-  (list @)
+  :: ?~  l  (limo ~[e])
+  :: :+  e
+  ::   &(f =(sut.a sut.e))
+  :: &(s =((sub val.a val.e) 1))
+++  uni-expected   (limo ~[9 9 8 8 8 8 9])
+++  wyt-expected   (limo ~[1 2 2 7 7 7 5])
 :: ++  tap-expected
 ::   %+  turn  lists
 ::     |=  l=(list @)  ^-  (list @)
@@ -122,44 +124,43 @@
 ++  test-set-run    ^-  tang
   (expect-eq !>(4) !>(4))
 ::
-::  convert to list
+::  Converts a set to list
 ::
 ++  test-set-tap    ^-  tang
-  (expect-eq !>(4) !>(4))
-  :: =/  lists-from-sets=(list (list @))
-  ::   %+  turn  sets
-  ::     ::  resulting lists are sorted since +set is not ordered
-  ::     ::
-  ::     |=(s=(set @) (sort ~(tap in s) lth))
-  :: %+  expect-eq
-  ::   !>(lists-from-sets)
-  ::   !>(tap-expected)
+  =/  lists-from-sets=(list (list @))
+    %+  turn  all
+      ::  resulting lists are sorted for proper list equality
+      ::
+      |=(s=(set @) (sort ~(tap in s) gth))
+  %+  expect-eq
+    !>  lists-from-sets
+    !>  tap-expected
 ::
-::  union
+::  Test the union of sets
 ::
 ++  test-set-uni    ^-  tang
-  =/  random-set=(set @)
-    (list-to-set (gulf 0 length))
-  ::  Tests that the resulting length is the correct
+  =/  random-set=(set @)  (list-to-set (gulf 0 7))
+  ::  Calculates the union of all sets in our suite with the random-set
   ::
   =/  uni-sets=(list (set @))
-    %+  turn  sets
+    %+  turn  all
       |=(s=(set @) (~(uni in s) random-set))
   %+  expect-eq
-    !>((turn uni-sets |=(s=(set @) ~(wyt in s))))
-    !>(uni-expected)
+    !>  (turn uni-sets |=(s=(set @) ~(wyt in s)))
+    !>  uni-expected
   ::  Tests that all items of set one are in set two
   ::
+  ::  ?
 ::
 ::  Tests the size of set
 ::
 ++  test-set-wyt    ^-  tang
+  ::  We ran all the tests in the suite
+  ::
   =/  sizes=(list @)
-    %+  turn  sets
+    %+  turn  all
       |=(s=(set @) ~(wyt in s))
-  ~&  sizes
   %+  expect-eq
-    !>(sizes)
-    !>(wyt-expected)
-::
+    !>  sizes
+    !>  wyt-expected
 --

@@ -26,7 +26,7 @@
     ++  m-des  (map-of-doubles (limo ~[7 6 5 4 3 2 1]))
     ++  m-uns  (map-of-doubles (limo ~[1 6 3 5 7 2 4]))
     ++  m-dup  (map-of-doubles (limo ~[1 1 7 4 6 9 4]))
-    ++  m-nul  (map-of-doubles (limo ~))
+    ++  m-nul  *(map @ @)
     ++  m-lis  (limo ~[m-nul m-uno m-dos m-tre m-asc m-des m-uns m-dup])
     +|  %expected-values
     ++  wyt-expected   (limo ~[0 1 2 2 7 7 7 5])

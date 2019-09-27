@@ -471,18 +471,18 @@
 ::  Test apply gate to nodes
 ::
 ++  test-map-rut    ^-  tang
-  =/  rut-gate  |=(a=[@ @] (add -.a +.a))
+  :: =/  rut-gate  |=(a=[@ @] (add -.a +.a))
   ;:  weld
     ::  Checks with empty map
     ::
     %+  expect-eq
       !>  ~
-      !>  (~(rut by m-nul) rut-gate)
+      !>  (~(rut by m-nul) add)
     ::  Checks success
     ::
     %+  expect-eq
       !>  (my ~[[1 3] [2 6] [3 9] [4 12] [5 15] [6 18] [7 21]])
-      !>  (~(rut by m-asc) rut-gate)
+      !>  (~(rut by m-asc) add)
   ==
 ::
 ::  Test listify pairs
@@ -551,18 +551,18 @@
 ::  Test apply gate to nodes (duplicates +rut)
 ::
 ++  test-map-urn    ^-  tang
-  =/  urn-gate  |=(a=[@ @] (add -.a +.a))
+  :: =/  urn-gate  |=(a=[@ @] (add -.a +.a))
   ;:  weld
     ::  Checks with empty map
     ::
     %+  expect-eq
       !>  ~
-      !>  (~(urn by m-nul) urn-gate)
+      !>  (~(urn by m-nul) add)
     ::  Checks success
     ::
     %+  expect-eq
       !>  (my ~[[1 3] [2 6] [3 9] [4 12] [5 15] [6 18] [7 21]])
-      !>  (~(urn by m-asc) urn-gate)
+      !>  (~(urn by m-asc) add)
   ==
 ::
 ::  Test produce list of vals

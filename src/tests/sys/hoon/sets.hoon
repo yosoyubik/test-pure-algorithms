@@ -164,7 +164,7 @@
       ^-  ?
       &(b ~(apt in s))
   ;:  weld
-    ::  Checks with all tests in suite
+    ::  Checks with all tests in the suite
     ::
     %+  expect-eq
       !>  &

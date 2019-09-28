@@ -2,6 +2,47 @@
 ::
 /+  *test
 ::
+=>  ::  The current +apt:to arm checks if the queue is balanced by
+    ::  asserting if the left and right children of the parent node
+    ::  are in ascending doble hash order.
+    ::
+    ::  &((mor n.l.a n.r.a)
+    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1746
+    ::
+    ::  This is not how the +qeu is constructed. Inspecting the +bal:to
+    ::  arm we can see that the order is with respect of the children
+    ::  of the parent node in incresing order
+    ::  e.g:
+    ::    (mor n.a n.l.a)
+    :: https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1763
+    ::    (mor n.a n.r.a)
+    :: https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1765
+    ::
+    ::  This corresponds to the representation of the +qeu as a min-heap where
+    ::  the heap property[1] states that the priority of any parent node is less
+    ::  that its children.
+    ::  Treaps usually follow another property tipycall of BST[2], the elements
+    ::  of the tree follow
+    ::
+    ::  The +check arm declared here implements the proper vertical check.
+    ::  The +test-queue-apt arm declared in this test suite validates +check
+    ::  functionality in comparison with the +apt:to arm defined in hoon.hoon
+    ::
+    ::  [1] https://opendatastructures.org/ods-python/7_2_Treap_Randomized_Binary.html
+    ::
+    |%
+    ++  check
+      |=  a=(qeu)
+      ^-  ?
+      ?~  a  &
+      |-  ^-  ?
+      ?~  l.a  &
+      ?~  r.a  &
+      ?&  ?&((mor n.a n.l.a) $(a l.a))
+          ?&((mor n.a n.r.a) $(a r.a))
+      ==
+    --
+::
 =>  ::  Test Data
     ::
     |%
@@ -46,48 +87,101 @@
 ::  check correctness
 ::
 ++  test-queue-apt  ^-  tang
-  (expect-eq !>(4) !>(2))
+  ::  manually constructed queues with predefined vertical ordering
+  ::  for the following three elements (1, 2, 3) the priorities are:
+  ::    > (mug (mug 1))
+  ::    1.405.103.437
+  ::    > (mug (mug 2))
+  ::    1.200.431.393
+  ::    > (mug (mug 3))
+  ::    1.576.941.407
+  ::
+  ::  and the ordering 2 < 1 < 3
+  ::  a correctly balanced tree stored as a min-heap
+  ::  should have 2 as the root
+  ::
+  =/  balanced-a=(qeu @)    [2 [3 ~ ~] [1 ~ ~]]
+  =/  balanced-b=(qeu @)    [2 [1 ~ ~] [3 ~ ~]]
+  =/  unbalanced-a=(qeu @)  [3 [2 ~ ~] [1 ~ ~]]
+  =/  unbalanced-b=(qeu @)  [1 [3 ~ ~] [2 ~ ~]]
+  =/  unbalanced-c=(qeu @)  [3 [1 ~ ~] [2 ~ ~]]
+  ;:  weld
+    ::  We expect +apt:to to return %.y with balanced trees
+    ::  that have higher priority on the right branch than
+    ::  in the left branch, independent of the other values.
+    ::
+    (expect-eq !>(b-a+%.n) !>(b-a+~(apt to balanced-a)))
+    (expect-eq !>(b-b+%.y) !>(b-b+~(apt to balanced-b)))
+    (expect-eq !>(u-a+%.y) !>(u-a+~(apt to unbalanced-a)))
+    (expect-eq !>(u-b+%.n) !>(u-b+~(apt to unbalanced-b)))
+    (expect-eq !>(u-c+%.n) !>(u-c+~(apt to unbalanced-c)))
+    ::  The correct +check arm should only return %.y for balanced trees
+    ::
+    (expect-eq !>(cb-a+%.y) !>(cb-a+(check balanced-a)))
+    (expect-eq !>(cb-b+%.y) !>(cb-b+(check balanced-b)))
+    (expect-eq !>(cu-a+%.n) !>(cu-a+(check unbalanced-a)))
+    (expect-eq !>(cu-b+%.n) !>(cu-b+(check unbalanced-b)))
+    (expect-eq !>(cu-c+%.n) !>(cu-c+(check unbalanced-c)))
+  ==
 ::
 ::  Balances the queue
 ::
 ++  test-queue-bal  ^-  tang
-  (expect-eq !>(4) !>(2))
+  ::  Manually created queues explicitly unbalanced
+  ::  p(2) < p(1) < p(3)
+  ::  that places nodes with higher priority as the root
+  ::
+  =/  unbalanced-a=(qeu @)  [3 [2 ~ ~] [1 ~ ~]]
+  =/  unbalanced-b=(qeu @)  [1 [3 ~ ~] [2 ~ ~]]
+  =/  unbalanced-c=(qeu @)  [3 [1 ~ ~] [2 ~ ~]]
+  ;:  weld
+    ::  We expect +apt:to to return %.y with balanced trees
+    ::  that have higher priority on the right branch than
+    ::  in the left branch, independent of the other values.
+    ::
+    (expect-eq !>(u-a+%.y) !>(u-a+~(apt to ~(bal to unbalanced-a))))
+    (expect-eq !>(u-b+%.y) !>(u-b+~(apt to ~(bal to unbalanced-b))))
+    (expect-eq !>(u-c+%.y) !>(u-c+~(apt to ~(bal to unbalanced-c))))
+    ::  The correct +check arm should only return %.y for balanced trees
+    ::
+    (expect-eq !>(cu-a+%.y) !>(cu-a+(check ~(bal to unbalanced-a))))
+    (expect-eq !>(cu-b+%.y) !>(cu-b+(check ~(bal to unbalanced-b))))
+    (expect-eq !>(cu-c+%.y) !>(cu-c+(check ~(bal to unbalanced-c))))
+  ==
 ::
 ::  max depth of queue
 ::
 ++  test-queue-dep  ^-  tang
-  (expect-eq !>(4) !>(2))
+  ::  Manually created queues with known depth
+  ::
+  =/  length-a=(qeu @)  [3 [2 ~ ~] [1 ~ ~]]
+  =/  length-b=(qeu @)  [1 ~ ~]
+  =/  length-c=(qeu @)  [5 ~ [4 ~ [2 [3 ~ ~] [1 ~ ~]]]]
+  =/  length-d=(qeu @)  [5 [4 [2 [3 ~ ~] [1 ~ ~]] ~] ~]
+  =/  length-e=(qeu @)  [5 [4 [2 ~ [1 ~ ~]] ~] [3 ~ ~]]
+  =/  length-f=(qeu @)  [5 [4 [1 ~ ~] [9 ~ ~]] [3 [6 ~ ~] [7 ~ ~]]]
+  ;:  weld
+    ::  We expect +apt:to to return %.y with balanced trees
+    ::  that have higher priority on the right branch than
+    ::  in the left branch, independent of the other values.
+    ::
+    (expect-eq !>(l-a+2) !>(l-a+~(dep to length-a)))
+    (expect-eq !>(l-b+1) !>(l-b+~(dep to length-b)))
+    (expect-eq !>(l-c+4) !>(l-c+~(dep to length-c)))
+    (expect-eq !>(l-d+4) !>(l-d+~(dep to length-d)))
+    (expect-eq !>(l-e+4) !>(l-e+~(dep to length-e)))
+    (expect-eq !>(l-f+3) !>(l-f+~(dep to length-f)))
+  ==
 ::
 ::  insert list to que
 ::
 ++  test-queue-gas  ^-  tang
-  ::  we use +apt to check the correctness
-  ::  of the queues created with +gas
-  ::
-  :: =+  |%
-  ::     +|  %test-suite
-  ::     ++  q-uno  (~(gas to *(qeu)) ~[42])
-  ::     ++  q-dos  (~(gas to *(qeu)) ~[6 9])
-  ::     ++  q-tre  (~(gas to *(qeu)) ~[1 0 1])
-  ::     ++  q-tri  (~(gas to *(qeu)) ~[1 2 3])
-  ::     ++  q-tra  (~(gas to *(qeu)) ~[3 2 1])
-  ::     ++  q-asc  (~(gas to *(qeu)) ~[1 2 3 4 5 6 7])
-  ::     ++  q-des  (~(gas to *(qeu)) ~[7 6 5 4 3 2 1])
-  ::     ++  q-uns  (~(gas to *(qeu)) ~[1 6 3 5 7 2 4])
-  ::     ++  q-dup  (~(gas to *(qeu)) ~[1 1 7 4 6 9 4])
-  ::     ++  q-nul  (~(gas to *(qeu)) ~)
-  ::     --
-  :: =/  q-lis=(list (qeu))
-  ::   :~  q-nul  q-uno  q-dos  q-tre  q-tri
-  ::       q-tra  q-asc  q-des  q-uns  q-dup
-  ::   ==
-  :: =/  actual=?
-  ::   %+  roll  queues
-  ::     |=  [[term s=(qeu)] b=?]
-  ::     &(b ~(apt to s))
   =/  actual=(list [term ?])
     %+  turn  queues
       |=  [t=term s=(qeu)]
+      ::  we use +apt to check the correctness
+      ::  of the queues created with +gas
+      ::
       [t ~(apt to s)]
   %-  zing
   ;:  weld
@@ -111,23 +205,6 @@
       !>  (~(gas to *(qeu)) (weld (gulf 1 7) (gulf 1 3)))
       !>  (~(gas to +:q-asc) (gulf 1 3))
   ==
-  :: ;:  weld
-  ::   ::  Checks with all tests in the suite
-  ::   ::
-  ::   %+  expect-eq
-  ::     !>  &
-  ::     !>  actual
-  ::   ::  Checks appending >1 elements
-  ::   ::
-  ::   %+  expect-eq
-  ::     !>  &
-  ::     !>  ~(apt to (~(gas to q-dos) ~[9 10]))
-  ::   ::  Checks adding existing elements
-  ::   ::
-  ::   %+  expect-eq
-  ::     !>  (~(gas to *(qeu)) (weld (gulf 1 7) (gulf 1 3)))
-  ::     !>  (~(gas to q-asc) (gulf 1 3))
-  :: ==
 ::
 ::  head-rest pair
 ::
@@ -261,6 +338,35 @@
 ::  Tests producing the head of the queue
 ::
 ++  test-queue-top  ^-  tang
+  ::  In order to know before hand which element of the tree will become
+  ::  the head we need to look at the way new elements are added to the
+  ::  tree and how it's rebalanced.
+  ::
+  ::  New elements are appended to the left-most branch of the tree, and
+  ::  then the resulting tree will be balanced following the heap property.
+  ::  The idea is that the balancing will be apply to all the subtrees
+  ::  starting from the node that has a left branch the new element that we
+  ::  have appended. We will then perform certain tree rotations, depending
+  ::  on the different priorities of the elements considered.
+  ::
+  ::  If the new element has lower priority, a right-rotation is performed.
+  ::  This will push the node (which was the first element) to the right
+  ::  branch and balance that subranch, while promoting the element in the
+  ::  left branch as new node.
+  ::
+  ::  If the new element has higher priority, we check the right branch to
+  ::  ensure that the heap-priority is conserved. In the case of the first
+  ::  insert, the right branch is empty, therefore, no rotations are needed.
+  ::
+  ::  This means that the first element inserted in the queue will be located
+  ::  either as the node of the queue, or in the right-most branch.
+  ::
+  ::  By inspecting +top:to we can see that it perfoms a traversal on the right
+  ::  branch of the tree returning the last node whose right branch is null,
+  ::  which is what we are looking for.
+  ::
+  ::
+  ::
   =/  expected=(map term @)
     %-  my
     :~  uno+42  dos+6  tre+1  tri+1

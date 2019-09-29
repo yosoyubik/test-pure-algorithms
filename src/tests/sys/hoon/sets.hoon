@@ -14,7 +14,7 @@
       ::  which causes that the comparison of equality[1] between the nodes from
       ::  from the different maps is never reached.
       ::
-      ::  The new arms propose here to replace +uni:in called +union removes
+      ::  The new arms proposed here to replace +uni:in called +union removes
       ::  the equality comparison that is never reached.
       ::
       ::  The new arm are tested in this suite togetther with +uni

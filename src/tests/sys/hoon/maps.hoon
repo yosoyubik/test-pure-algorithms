@@ -632,7 +632,6 @@
 ::  Test apply gate to nodes
 ::
 ++  test-map-rut  ^-  tang
-  :: =/  rut-gate  |=(a=[@ @] (add -.a +.a))
   ;:  weld
     ::  Checks with empty map
     ::

@@ -74,11 +74,93 @@
 ::  check correctness
 ::
 ++  test-set-apt  ^-  tang
-  (expect-eq !>(4) !>(2))
+  ::  manually constructed sets with predefined vertical/horizontal
+  ::  ordering
+  ::
+  ::  for the following three elements (1, 2, 3) the vertical priorities are:
+  ::    > (mug (mug 1))
+  ::    1.405.103.437
+  ::    > (mug (mug 2))
+  ::    1.200.431.393
+  ::    > (mug (mug 3))
+  ::    1.576.941.407
+  ::
+  ::  and the ordering 2 < 1 < 3
+  ::  a correctly balanced tree stored as a min-heap
+  ::  should have node=2 as the root
+  ::
+  ::  The horizontal priorities are:
+  ::    > (mug 1)
+  ::    1.901.865.568
+  ::    > (mug 2)
+  ::    1.904.972.904
+  ::    > (mug 3)
+  ::    1.923.673.882
+  ::
+  ::  and the ordering 1 < 2 < 3.
+  ::  1 should be in the left brach and 3 in the right one.
+  ::
+  =/  balanced-a=(set @)    [2 [1 ~ ~] [3 ~ ~]]
+  ::  doesn't follow vertical ordering
+  ::
+  =/  unbalanced-a=(set @)  [1 [2 ~ ~] [3 ~ ~]]
+  ::  doesn't follow horizontal ordering
+  ::
+  =/  unbalanced-b=(set @)  [2 [3 ~ ~] [1 ~ ~]]
+  ::  doesn't follow horizontal & vertical ordering
+  ::
+  =/  unbalanced-c=(set @)  [1 [3 ~ ~] [2 ~ ~]]
+  ;:  weld
+    (expect-eq !>(b-a+%.y) !>(b-a+~(apt in balanced-a)))
+    (expect-eq !>(u-a+%.n) !>(u-a+~(apt in unbalanced-a)))
+    (expect-eq !>(u-b+%.n) !>(u-b+~(apt in unbalanced-b)))
+    (expect-eq !>(u-c+%.n) !>(u-c+~(apt in unbalanced-c)))
+  ==
 ::  splits a in b
 ::
 ++  test-set-bif  ^-  tang
-  (expect-eq !>(4) !>(2))
+  =/  s-asc=(set @)   (sy (gulf 1 7))
+  =/  s-nul=(set @)   *(set @)
+  =/  splits-a=[(set) (set)]  (~(bif in s-asc) 99)
+  =/  splits-b=[(set) (set)]  (~(bif in s-asc) 6)
+  ;:  weld
+    ::  Checks with empty map
+    ::
+    %+  expect-eq
+      !>  [~ ~]
+      !>  (~(bif in s-nul) 1)
+    ::  Checks bifurcating in non-existing element
+    ::
+    ::  The traversal of the +map is done comparing the 2x +mug
+    ::  of the added node and the existing one from the tree.
+    ::  Because of this, the search will stop at different leaves,
+    ::  based on the value of the hash, therefore the right and left
+    ::  maps that are returned can be different
+    ::  (null or a less than the total number of nodes)
+    ::  The best way to check is that the sum of the number of nodes
+    ::  in both maps are the same as before, and that both returned
+    ::  sets are correct
+    ::
+    %+  expect-eq
+      !>  7
+      !>  (add ~(wyt in -.splits-a) ~(wyt in +.splits-a))
+    %+  expect-eq
+      !>  %.y
+      !>  &(~(apt in -.splits-a) ~(apt in +.splits-a))
+    ::  Checks splitting in existing element
+    ::
+    %+  expect-eq
+      !>  6
+      !>  (add ~(wyt in -.splits-b) ~(wyt in +.splits-b))
+    %+  expect-eq
+      !>  %.y
+      !>  &(~(apt in -.splits-b) ~(apt in +.splits-b))
+    =/  left   (~(has in -.splits-b) 6)
+    =/  right  (~(has in +.splits-b) 6)
+    %+  expect-eq
+      !>  %.n
+      !>  &(left right)
+  ==
 :: ::  b without any a
 ::
 ++  test-set-del  ^-  tang
@@ -116,7 +198,7 @@
     ::
     %+  expect-eq
       !>  ~
-      !>  (~(dif in ~) ~)
+      !>  (~(dif in *(set)) ~)
     %+  expect-eq
       !>  s-asc
       !>  (~(dif in s-asc) ~)
@@ -139,7 +221,33 @@
 ::  axis of a in b
 ::
 ++  test-set-dig  ^-  tang
-  (expect-eq !>(4) !>(2))
+  =/  custom  [2 [1 ~ ~] [3 ~ ~]]
+  =/  manual-set=(set @)  custom
+  ;:  weld
+    ::  Checks with empty map
+    ::
+    %+  expect-eq
+      !>  ~
+      !>  (~(dig in *(set)) 6)
+    ::  Checks with non-existing key
+    ::
+    %+  expect-eq
+      !>  ~
+      !>  (~(dig in manual-set) 9)
+    ::  Checks success via tree addressing. We use the return axis
+    ::  to address the raw noun and check that it gives the corresponding
+    ::  from the key.
+    ::
+    %+  expect-eq
+      !>  1
+      !>  +:(slot (need (~(dig in manual-set) 1)) !>(custom))
+    %+  expect-eq
+      !>  2
+      !>  +:(slot (need (~(dig in manual-set) 2)) !>(custom))
+    %+  expect-eq
+      !>  3
+      !>  +:(slot (need (~(dig in manual-set) 3)) !>(custom))
+  ==
 ::  concatenate
 ::
 ++  test-set-gas  ^-  tang

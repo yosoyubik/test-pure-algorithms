@@ -17,7 +17,7 @@
       ::  The new arms proposed here to replace +uni:in called +union removes
       ::  the equality comparison that is never reached.
       ::
-      ::  The new arm are tested in this suite togetther with +uni
+      ::  The new arm is tested in this suite togetther with +uni.
       ::
       ::  Notes:
       ::  [1]

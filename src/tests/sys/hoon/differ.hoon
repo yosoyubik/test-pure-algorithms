@@ -129,7 +129,7 @@
     ::
     %+  expect-eq
       !>  "wsx"
-      !>  (loss "wsxq" "xyzwsx")
+      !>  (loss "qwsx" "xyzwsx")
     %+  expect-eq
       !>  "edc"
       !>  (loss "edc" "xyzedc")

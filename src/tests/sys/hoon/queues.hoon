@@ -11,7 +11,7 @@
     ::
     ::  This is not how the +qeu is constructed. Inspecting the +bal:to
     ::  arm we can see that the order of the nodes of the resulting tree is such
-    ::  as each parent has lower priority than any of its children.
+    ::  that each parent has lower priority than any of its children.
     ::  e.g:
     ::    (mor n.a n.l.a)
     :: https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1763
@@ -193,10 +193,6 @@
   =/  length-e=(qeu @)  [5 [4 [2 ~ [1 ~ ~]] ~] [3 ~ ~]]
   =/  length-f=(qeu @)  [5 [4 [1 ~ ~] [9 ~ ~]] [3 [6 ~ ~] [7 ~ ~]]]
   ;:  weld
-    ::  We expect +apt:to to return %.y with balanced trees
-    ::  that have higher priority on the right branch than
-    ::  in the left branch, independent of the other values.
-    ::
     (expect-eq !>(l-a+2) !>(l-a+~(dep to length-a)))
     (expect-eq !>(l-b+1) !>(l-b+~(dep to length-b)))
     (expect-eq !>(l-c+4) !>(l-c+~(dep to length-c)))

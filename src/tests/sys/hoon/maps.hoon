@@ -508,7 +508,7 @@
     %+  expect-eq
       !>  ~
       !>  ~(key by m-nul)
-    ::  Checks when creating a set from a list with duplicates
+    ::  Checks when creating a map from a list with duplicates
     ::
     %+  expect-eq
       !>  (sy ~[1 1 7 4 6 9 4])

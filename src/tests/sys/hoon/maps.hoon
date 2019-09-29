@@ -13,6 +13,74 @@
       %+  turn  l
         |=  k=@
         [k (mul 2 k)]
+    ::
+    ::  The +uno:by arm has currently an issue coming from the fact that
+    ::  +mor follows non-strict ordering (mor 1 1) -> %.y
+    ::  which causes that that comparison of equality[1] between the nodes from
+    ::  from the different maps is never reached and the +meg arm is never
+    ::  called.[2] The following example (used in this test suite) shows it:
+    ::  =/  a  (my ~[[1 9] [7 3] [8 5]])
+    ::  =/  b  (my ~[[1 2] [7 2]])
+    ::  ((~(uno by a) b) |=([k=@ v=@ w=@] (add v w)))
+    ::  > [n=[p=8 q=5] l=~ r=[n=[p=7 q=2] l={} r={[p=1 q=2]}]]
+    ::
+    ::  Instead of:
+    ::  > [n=[p=8 q=5] l=~ r=[n=[p=7 q=5] l={} r={[p=1 q=11]}]]
+    ::
+    ::  The same issue with mor being non-strict[3] also occurs in +uni:by
+    ::
+    ::  The two new arms proposed here to replace +uno and +uni
+    ::  (+general-union and +merge-union) remove the equality comparison that is
+    ::  never reached and, in the case of +general-union move the call to +meg
+    ::  to the branch where (mor p.n.a p.n.b) and =(p.n.b p.n.a) [4]
+    ::  both return yes.
+    ::
+    ::  The new arms are tested in this suite togetther with +uni and +uno
+    ::
+    ::  Notes:
+    ::  [1]
+    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1648
+    ::  [2]
+    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1649
+    ::  [3]
+    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1619
+    ::  [4]
+    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1644
+    ++  general-union
+      |=  [a=(map @ @) b=(map @ @) meg=$-([@ @ @] @)]
+      |-  ^+  a
+      ?~  b
+        a
+      ?~  a
+        b
+      ?:  (mor p.n.a p.n.b)
+        ?:  =(p.n.b p.n.a)
+          :+  [p.n.a (meg p.n.a q.n.a q.n.b)]
+            $(b l.b, a l.a)
+          $(b r.b, a r.a)
+        ?:  (gor p.n.b p.n.a)
+          $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
+        $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
+      ?:  (gor p.n.a p.n.b)
+        $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
+      $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
+    ::
+    ++  merge-union
+      |=  [a=(map @ @) b=(map @ @)]
+      |-  ^+  a
+      ?~  b
+        a
+      ?~  a
+        b
+      ?:  (mor p.n.a p.n.b)
+        ?:  =(p.n.b p.n.a)
+          [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
+        ?:  (gor p.n.b p.n.a)
+          $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
+        $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
+      ?:  (gor p.n.a p.n.b)
+        $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
+      $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
     --
 ::
 =>  ::  Test Data
@@ -258,7 +326,7 @@
       !>  (~(dig by m-des) 9)
     ::  Checks success via tree addressing. We use the return axis
     ::  to address the raw noun and check that it gives the corresponding
-    ::  from the key.
+    ::  value from the key.
     ::
     %+  expect-eq
       !>  [1 (~(got by manual-map) 1)]
@@ -413,8 +481,8 @@
       !>  (~(int by m-dos) (my [6 99]~))
   ==
 ::
-::  Searches for a specific key and modifies its value
-::  according to a specific function.
+::  Searches for a specific key and modifies its value with the result
+::  of the provided gate
 ::
 ++  test-map-jab    ^-  tang
   ;:  weld
@@ -625,6 +693,37 @@
     %+  expect-eq
       !>  d
       !>  (~(uni by c) d)
+    ::
+    ::  +merge-union arm test
+    ::
+    ::  Checks with empty map (a or b)
+    ::
+    %+  expect-eq
+      !>  m-des
+      !>  (merge-union m-nul m-des)
+    %+  expect-eq
+      !>  m-des
+      !>  (merge-union m-des m-nul)
+    ::  Checks with all keys different
+    ::
+    =/  keys  (limo ~[9 15])
+    =/  a=(map @ @)  (map-of-doubles (scag 4 keys))
+    =/  b=(map @ @)  (map-of-doubles (slag 4 keys))
+    %+  expect-eq
+      !>  (map-of-doubles keys)
+      !>  (merge-union a b)
+    ::  Checks total union
+    ::
+    %+  expect-eq
+      !>  m-asc
+      !>  (merge-union m-asc m-des)
+    ::  Checks union with value replacement from b
+    ::
+    =/  c=(map @ @)  (my [1 12]~)
+    =/  d=(map @ @)  (my [1 24]~)
+    %+  expect-eq
+      !>  d
+      !>  (merge-union c d)
   ==
 ::
 ::  Test general union
@@ -632,6 +731,8 @@
 ++  test-map-uno    ^-  tang
   =/  union-gate  |=([k=@ v=@ w=@] (add v w))
   ;:  weld
+    ::  +uno:by arm test
+    ::
     ::  Checks with empty map (a or b)
     ::
     %-  expect-fail
@@ -659,6 +760,37 @@
     %+  expect-eq
       !>  (my ~[[1 11] [7 5] [8 5]])
       !>  ((~(uno by a) b) union-gate)
+    ::
+    ::  +general-union arm test
+    ::
+    ::  Checks with empty map (a or b)
+    ::
+    %+  expect-eq
+      !>  m-des
+      !>  (general-union m-nul m-des union-gate)
+    %+  expect-eq
+      !>  m-des
+      !>  (general-union m-des m-nul union-gate)
+    ::  Checks with all keys different
+    ::
+    =/  keys  (limo ~[9 15])
+    =/  a=(map @ @)  (map-of-doubles (scag 4 keys))
+    =/  b=(map @ @)  (map-of-doubles (slag 4 keys))
+    %+  expect-eq
+      !>  (map-of-doubles keys)
+      !>  (general-union a b union-gate)
+    ::  Checks total union
+    ::
+    %+  expect-eq
+      !>  (my ~[[1 4] [2 8] [3 12] [4 16] [5 20] [6 24] [7 28]])
+      !>  (general-union m-asc m-des union-gate)
+    ::  Checks partial union
+    ::
+    =/  a=(map @ @)  (my ~[[1 9] [7 3] [8 5]])
+    =/  b=(map @ @)  (my ~[[1 2] [7 2]])
+    %+  expect-eq
+      !>  (my ~[[1 11] [7 5] [8 5]])
+      !>  (general-union a b union-gate)
   ==
 ::
 ::  Test apply gate to nodes (duplicates +rut)

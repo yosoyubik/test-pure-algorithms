@@ -201,7 +201,7 @@
     (expect-eq !>(l-f+3) !>(l-f+~(dep to length-f)))
   ==
 ::
-::  insert list to que
+::  insert list into queue
 ::
 ++  test-queue-gas  ^-  tang
   =/  actual=(list [term ?])

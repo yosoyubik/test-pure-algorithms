@@ -393,8 +393,6 @@
   ::  branch of the tree returning the last node whose right branch is null,
   ::  which is what we are looking for.
   ::
-  ::
-  ::
   =/  expected=(map term @)
     %-  my
     :~  uno+42  dos+6  tre+1  tri+1

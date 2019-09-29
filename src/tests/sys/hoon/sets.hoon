@@ -11,7 +11,7 @@
       ::
       ::  The +uni:in arm has currently an issue coming from the fact that
       ::  +mor follows non-strict ordering (mor 1 1) -> %.y
-      ::  which causes that that comparison of equality[1] between the nodes from
+      ::  which causes that the comparison of equality[1] between the nodes from
       ::  from the different maps is never reached.
       ::
       ::  The new arms propose here to replace +uni:in called +union removes

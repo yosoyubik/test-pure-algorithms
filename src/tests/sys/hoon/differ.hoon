@@ -8,7 +8,7 @@
 |%
 ::  ++berk:differ: invert diff patch
 ::
-++  test-berk
+++  test-berk  ^-  tang
   ::  An inverted diff between %a and %b can be checked
   ::  by patching %b and obtaining %a
   ::
@@ -110,7 +110,7 @@
 ::
 ::  ++loss:differ: longest subsequence
 ::
-++  test-loss
+++  test-loss  ^-  tang
   ;:  weld
     ::  null case
     ::
@@ -155,7 +155,7 @@
   ==
 ::
 ::  ++lurk:differ: apply list patch
-++  test-lurk
+++  test-lurk  ^-  tang
   ;:  weld
     ::  (some) test examples adapted from:
     ::  https://github.com/gioele/diff-lcs/blob/master/test/test_diff-lcs.rb
@@ -238,7 +238,7 @@
     (expect-eq !>(b) !>((lurk a dif)))
   ==
 ::  ++lusk:differ: lcs to list patch
-++  test-lusk
+++  test-lusk  ^-  tang
   ;:  weld
     ::  (some) test examples adapted from:
     ::  https://github.com/gioele/diff-lcs/blob/master/test/test_diff-lcs.rb

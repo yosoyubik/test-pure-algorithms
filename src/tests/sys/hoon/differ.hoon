@@ -155,6 +155,7 @@
   ==
 ::
 ::  ++lurk:differ: apply list patch
+::
 ++  test-lurk  ^-  tang
   ;:  weld
     ::  (some) test examples adapted from:
@@ -238,6 +239,7 @@
     (expect-eq !>(b) !>((lurk a dif)))
   ==
 ::  ++lusk:differ: lcs to list patch
+::
 ++  test-lusk  ^-  tang
   ;:  weld
     ::  (some) test examples adapted from:

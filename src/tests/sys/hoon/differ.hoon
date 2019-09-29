@@ -116,42 +116,42 @@
     ::
     %+  expect-eq
       !>  ~
-      !>  (loss (tuba "abc") (tuba "xyz"))
+      !>  (loss "abc" "xyz")
     ::  common prefix
     ::
     %+  expect-eq
-      !>  (tuba "abc")
-      !>  (loss (tuba "abcq") (tuba "abcxyz"))
+      !>  "abc"
+      !>  (loss "abcq" "abcxyz")
     %+  expect-eq
-      !>  (tuba "qaz")
-      !>  (loss (tuba "qaz") (tuba "qazxyz"))
+      !>  "qaz"
+      !>  (loss "qaz" "qazxyz")
     ::  common suffix
     ::
     %+  expect-eq
-      !>  (tuba "wsx")
-      !>  (loss (tuba "wsxq") (tuba "xyzwsx"))
+      !>  "wsx"
+      !>  (loss "wsxq" "xyzwsx")
     %+  expect-eq
-      !>  (tuba "edc")
-      !>  (loss (tuba "edc") (tuba "xyzedc"))
+      !>  "edc"
+      !>  (loss "edc" "xyzedc")
     ::  overlap
     ::
     %+  expect-eq
-      !>  (tuba "rfv")
-      !>  (loss (tuba "qrfvp") (tuba "xyzrfvdef"))
+      !>  "rfv"
+      !>  (loss "qrfvp" "xyzrfvdef")
     %+  expect-eq
-      !>  (tuba "tgb")
-      !>  (loss (tuba "qwertytgb") (tuba "tgbasdfgh"))
+      !>  "tgb"
+      !>  (loss "qwertytgb" "tgbasdfgh")
     :: Non contiguous
     ::
     %+  expect-eq
       ::  From wikipedia:
       ::  https://en.wikipedia.org/wiki/Longest_common_subsequence_problem
       ::
-      !>  (tuba "MJAU")
-      !>  (loss (tuba "XMJYAUZ") (tuba "MZJAWXU"))
+      !>  "MJAU"
+      !>  (loss "XMJYAUZ" "MZJAWXU")
     %+  expect-eq
-      !>  (tuba "qawsxcf")
-      !>  (loss (tuba "qazwsxedcrfvtb") (tuba "qqqawsxcf"))
+      !>  "qawsxcf"
+      !>  (loss "qazwsxedcrfvtb" "qqqawsxcf")
   ==
 ::
 ::  ++lurk:differ: apply list patch

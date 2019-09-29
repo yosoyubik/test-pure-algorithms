@@ -106,7 +106,7 @@
           [%.n (flop "10") ~]
       ==
     (expect-eq !>(a) !>((lurk b (berk dif))))
-==
+  ==
 ::
 ::  ++loss:differ: longest subsequence
 ::

@@ -2,16 +2,16 @@
 ::
 /+  *test
 ::
-=>  ::  The current +apt:to arm checks if the queue is balanced by
+=>  ::  The current +apt:to arm checks if the +qeu is balanced by
     ::  asserting if the left and right children of the parent node
-    ::  are in ascending doble hash order.
+    ::  are in ascending double +mug order.
     ::
     ::  &((mor n.l.a n.r.a)
     ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1746
     ::
     ::  This is not how the +qeu is constructed. Inspecting the +bal:to
-    ::  arm we can see that the order is with respect of the children
-    ::  of the parent node in incresing order
+    ::  arm we can see that the order of the nodes of the resulting tree is such
+    ::  as each parent has lower priority than any of its children.
     ::  e.g:
     ::    (mor n.a n.l.a)
     :: https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1763
@@ -20,15 +20,47 @@
     ::
     ::  This corresponds to the representation of the +qeu as a min-heap where
     ::  the heap property[1] states that the priority of any parent node is less
-    ::  that its children.
-    ::  Treaps usually follow another property tipycall of BST[2], the elements
-    ::  of the tree follow
+    ::  than its children.
+    ::  Treaps usually follow another property tipycall of BST[2], the nodes
+    ::  of the tree follow a sorting order such as nodes on the left branch
+    ::  are lower than the parent node, and viceversa for nodes of the right
+    ::  branch.
     ::
     ::  The +check arm declared here implements the proper vertical check.
     ::  The +test-queue-apt arm declared in this test suite validates +check
     ::  functionality in comparison with the +apt:to arm defined in hoon.hoon
     ::
-    ::  [1] https://opendatastructures.org/ods-python/7_2_Treap_Randomized_Binary.html
+    ::  Notes:
+    ::  [1]
+    ::https://opendatastructures.org/ods-python/7_2_Treap_Randomized_Binary.html
+    ::
+    ::  [2]
+    ::  In the current implementation, the +qeu does not behave as usually
+    ::  is intended for Treaps, that is, it does not have the properties of a
+    ::  Binary Search Tree. The fact that there is not a sorting function
+    ::  provided when defining the data structure makes that the nodes are not
+    ::  ordered and therefore can't handle a search where one would expect the
+    ::  nodes with lower value (according to a specific sorting function) to be
+    ::  in the left branch of the tree, in comparison to the nodes on the
+    ::  right side of the tree.
+    ::
+    ::  For example, the following insertion in the +qeu:
+    ::    ~[99 3 4 53 88 99 625 7 1 3 9 8 7]
+    ::  produces this tree:
+    ::
+    ::                            8
+    ::                           / \
+    ::                          7   625
+    ::                             /   \
+    ::                            7     4
+    ::                           /     / \
+    ::                          9     53  3
+    ::                          \    /     \
+    ::                           1  99     99
+    ::                          /     \
+    ::                         3      88
+    ::
+    ::  The structure is a product of the order of insertion (FIFO in this case)
     ::
     |%
     ++  check
@@ -338,28 +370,28 @@
 ::  Tests producing the head of the queue
 ::
 ++  test-queue-top  ^-  tang
-  ::  In order to know before hand which element of the tree will become
-  ::  the head we need to look at the way new elements are added to the
+  ::  In order to know beforehand which element of the +qeu will become
+  ::  the head, we need to look at the way new nodes are added to the
   ::  tree and how it's rebalanced.
   ::
-  ::  New elements are appended to the left-most branch of the tree, and
+  ::  New nodes are appended to the left-most branch of the tree, and
   ::  then the resulting tree will be balanced following the heap property.
-  ::  The idea is that the balancing will be apply to all the subtrees
-  ::  starting from the node that has a left branch the new element that we
+  ::  The idea is that the balancing will be applied to all the subtrees,
+  ::  starting from the node whose left branch is the new node that we
   ::  have appended. We will then perform certain tree rotations, depending
-  ::  on the different priorities of the elements considered.
+  ::  on the different priorities of the nodes considered.
   ::
-  ::  If the new element has lower priority, a right-rotation is performed.
-  ::  This will push the node (which was the first element) to the right
-  ::  branch and balance that subranch, while promoting the element in the
-  ::  left branch as new node.
+  ::  If the new node has lower priority, a right-rotation is performed.
+  ::  This will push the node (which was the first node) to the right
+  ::  branch and balance that sub-branch, while promoting the node in the
+  ::  left branch as the new node.
   ::
-  ::  If the new element has higher priority, we check the right branch to
+  ::  If the new node has higher priority, we check the right branch to
   ::  ensure that the heap-priority is conserved. In the case of the first
   ::  insert, the right branch is empty, therefore, no rotations are needed.
   ::
-  ::  This means that the first element inserted in the queue will be located
-  ::  either as the node of the queue, or in the right-most branch.
+  ::  This means that the first node inserted in the +qeu will be located
+  ::  either as the node of the +qeu, or in the right-most branch.
   ::
   ::  By inspecting +top:to we can see that it perfoms a traversal on the right
   ::  branch of the tree returning the last node whose right branch is null,

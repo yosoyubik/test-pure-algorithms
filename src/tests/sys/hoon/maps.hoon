@@ -582,8 +582,8 @@
     ::  Checks success
     ::
     %+  expect-eq
-      ::  =m-dos {[p=6 q=12] [p=9 q=18]}
-      ::  (12 - 6) + (18 - 9)
+      ::  m-dos => {[p=6 q=12] [p=9 q=18]}
+      ::  acc   => (12 - 6) + (18 - 9) => 15
       !>  b=15
       !>  (~(rep by m-dos) rep-gate)
   ==

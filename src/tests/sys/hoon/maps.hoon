@@ -46,6 +46,7 @@
     ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1619
     ::  [4]
     ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1644
+    ::
     ++  general-union
       |=  [a=(map @ @) b=(map @ @) meg=$-([@ @ @] @)]
       |-  ^+  a
@@ -102,7 +103,7 @@
 |%
 ::  Test logical AND
 ::
-++  test-map-all    ^-  tang
+++  test-map-all  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -131,7 +132,7 @@
 ::
 ::  Test logical OR
 ::
-++  test-map-any    ^-  tang
+++  test-map-any  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -165,7 +166,7 @@
 ::
 ::  Test check correctnes (correct horizontal/vertical order)
 ::
-++  test-map-apt    ^-  tang
+++  test-map-apt  ^-  tang
   ::  manually constructed maps with predefined vertical/horizontal
   ::  ordering
   ::
@@ -211,7 +212,7 @@
 ::
 ::  Test bifurcation (i.e. splits map a into two, discarding -.a)
 ::
-++  test-map-bif    ^-  tang
+++  test-map-bif  ^-  tang
   =/  splits-a=[(map) (map)]  (~(bif by m-des) [99 99])
   =/  splits-b=[(map) (map)]  (~(bif by m-des) [6 12])
   ;:  weld
@@ -255,7 +256,7 @@
 ::
 ::  Test delete at key b
 ::
-++  test-map-del    ^-  tang
+++  test-map-del  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -281,7 +282,7 @@
 ::
 ::  Test difference (removes elements of a present in b)
 ::
-++  test-map-dif    ^-  tang
+++  test-map-dif  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -310,7 +311,7 @@
 ::
 ::  Test axis of a in b
 ::
-++  test-map-dig    ^-  tang
+++  test-map-dig  ^-  tang
   =/  custom      [[2 4] [[1 2] ~ ~] [[3 6] ~ ~]]
   =/  manual-map=(map @ @)  custom
   ;:  weld
@@ -341,7 +342,7 @@
 ::
 ::  Test concatenate
 ::
-++  test-map-gas    ^-  tang
+++  test-map-gas  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -367,7 +368,7 @@
 ::
 ::  Test grab value by key
 ::
-++  test-map-get    ^-  tang
+++  test-map-get  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -388,7 +389,7 @@
 ::
 ::  Test need value by key
 ::
-++  test-map-got    ^-  tang
+++  test-map-got  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -407,7 +408,7 @@
 ::
 ::  Test fall value by key
 ::
-++  test-map-gut    ^-  tang
+++  test-map-gut  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -428,7 +429,7 @@
 ::
 ::  Test +has: does :b exist in :a?
 ::
-++  test-map-has    ^-  tang
+++  test-map-has  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -449,7 +450,7 @@
 ::
 ::  Test intersection
 ::
-++  test-map-int    ^-  tang
+++  test-map-int  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -484,7 +485,7 @@
 ::  Searches for a specific key and modifies its value with the result
 ::  of the provided gate
 ::
-++  test-map-jab    ^-  tang
+++  test-map-jab  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -500,7 +501,7 @@
 ::
 ::  Test produce set of keys
 ::
-++  test-map-key    ^-  tang
+++  test-map-key  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -521,7 +522,7 @@
 ::
 ::  Test add key-value pair with validation (the value is a nonempty unit)
 ::
-++  test-map-mar    ^-  tang
+++  test-map-mar  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -547,7 +548,7 @@
 ::
 ::  Test add key-value pair
 ::
-++  test-map-put    ^-  tang
+++  test-map-put  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -568,7 +569,7 @@
 ::
 ::  Test replace by product
 ::
-++  test-map-rep    ^-  tang
+++  test-map-rep  ^-  tang
   ::  Accumulates differences between keys and values
   ::
   =/  rep-gate  |=([a=[@ @] b=@] (add b (sub +.a -.a)))
@@ -589,7 +590,7 @@
 ::
 ::  Test Test transform + product
 ::
-++  test-map-rib    ^-  tang
+++  test-map-rib  ^-  tang
   ::  We accumulate the multiples we have in our array
   ::  and drain the pairs whose values are double of their keys.
   ::
@@ -614,7 +615,7 @@
 ::
 ::  apply gate to values
 ::
-++  test-map-run    ^-  tang
+++  test-map-run  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -630,7 +631,7 @@
 ::
 ::  Test apply gate to nodes
 ::
-++  test-map-rut    ^-  tang
+++  test-map-rut  ^-  tang
   :: =/  rut-gate  |=(a=[@ @] (add -.a +.a))
   ;:  weld
     ::  Checks with empty map
@@ -647,7 +648,7 @@
 ::
 ::  Test listify pairs
 ::
-++  test-map-tap    ^-  tang
+++  test-map-tap  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -663,7 +664,7 @@
 ::
 ::  Test the union of maps
 ::
-++  test-map-uni    ^-  tang
+++  test-map-uni  ^-  tang
   ;:  weld
     ::  Checks with empty map (a or b)
     ::
@@ -728,7 +729,7 @@
 ::
 ::  Test general union
 ::
-++  test-map-uno    ^-  tang
+++  test-map-uno  ^-  tang
   =/  union-gate  |=([k=@ v=@ w=@] (add v w))
   ;:  weld
     ::  +uno:by arm test
@@ -795,7 +796,7 @@
 ::
 ::  Test apply gate to nodes (duplicates +rut)
 ::
-++  test-map-urn    ^-  tang
+++  test-map-urn  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -811,7 +812,7 @@
 ::
 ::  Test produce list of vals
 ::
-++  test-map-val    ^-  tang
+++  test-map-val  ^-  tang
   ;:  weld
     ::  Checks with empty map
     ::
@@ -836,7 +837,7 @@
 ::
 ::  Tests the size of map
 ::
-++  test-map-wyt    ^-  tang
+++  test-map-wyt  ^-  tang
   ::  We ran all the tests in the suite
   ::
   =/  sizes=(list @)

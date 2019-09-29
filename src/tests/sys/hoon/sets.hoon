@@ -8,7 +8,38 @@
     ++  list-to-set
       |=  l=(list @)  ^-  (set @)
       (sy l)
-    --
+      ::
+      ::  The +uni:in arm has currently an issue coming from the fact that
+      ::  +mor follows non-strict ordering (mor 1 1) -> %.y
+      ::  which causes that that comparison of equality[1] between the nodes from
+      ::  from the different maps is never reached.
+      ::
+      ::  The new arms propose here to replace +uni:in called +union removes
+      ::  the equality comparison that is never reached.
+      ::
+      ::  The new arm are tested in this suite togetther with +uni
+      ::
+      ::  Notes:
+      ::  [1]
+      ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1536
+      ::
+      ++  union
+        |=  [a=(set @) b=(set @)]
+        |-  ^+  a
+        ?~  b
+          a
+        ?~  a
+          b
+        ?:  (mor n.a n.b)
+          ?:  =(n.b n.a)
+            [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
+          ?:  (gor n.b n.a)
+            $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
+          $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
+        ?:  (gor n.a n.b)
+          $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
+        $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
+      --
 ::
 ::  Testing arms
 ::
@@ -161,7 +192,7 @@
       !>  %.n
       !>  &(left right)
   ==
-:: ::  b without any a
+:: b without any a
 ::
 ++  test-set-del  ^-  tang
   =/  s-asc=(set @)   (sy (gulf 1 7))
@@ -472,6 +503,34 @@
     %+  expect-eq
       !>  s-asc
       !>  (~(uni in s-asc) (sy (gulf 1 3)))
+    ::
+    ::  Tests for the +union arm
+    ::
+    ::  Checks with empty map (a or b)
+    ::
+    %+  expect-eq
+      !>  s-des
+      !>  (union s-nul s-des)
+    %+  expect-eq
+      !>  s-des
+      !>  (union s-des s-nul)
+    ::  Checks with no intersection
+    ::
+    =/  a=(set @)  (sy (scag 4 asc))
+    =/  b=(set @)  (sy (slag 4 asc))
+    %+  expect-eq
+      !>  (list-to-set asc)
+      !>  (union a b)
+    ::  Checks union with equal sets
+    ::
+    %+  expect-eq
+      !>  s-asc
+      !>  (union s-asc s-des)
+    ::  Checks union with partial intersection
+    ::
+    %+  expect-eq
+      !>  s-asc
+      !>  (union s-asc (sy (gulf 1 3)))
   ==
 ::
 ::  Tests the size of set

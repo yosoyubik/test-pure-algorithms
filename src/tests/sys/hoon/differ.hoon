@@ -1,4 +1,4 @@
-::  Tests for +differ (hunt-mcilroy)
+::  Tests for +differ (a suite of Hunt-McIlroy diff and merge algorithms)
 ::
 /+  *test
 ::
@@ -16,67 +16,81 @@
     ::  (some) test examples adapted from:
     ::  https://github.com/gioele/diff-lcs/blob/master/test/test_diff-lcs.rb
     ::
-    =/  a=wain  "abcehjlmnp"
-    =/  b=wain  "bcdefjklmrst"
+    =/  a  "abcehjlmnp"
+    =/  b  "bcdefjklmrst"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "abcde"
-    =/  b=wain  "ae"
+    =/  a  "abcde"
+    =/  b  "ae"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "ae"
-    =/  b=wain  "abcde"
+    =/  a  "ae"
+    =/  b  "abcde"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "vxae"
-    =/  b=wain  "wyabcde"
+    =/  a  "vxae"
+    =/  b  "wyabcde"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "xae"
-    =/  b=wain  "abcde"
+    =/  a  "xae"
+    =/  b  "abcde"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "ae"
-    =/  b=wain  "xabcde"
+    =/  a  "ae"
+    =/  b  "xabcde"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "aev"
-    =/  b=wain  "xabcdewx"
+    =/  a  "aev"
+    =/  b  "xabcdewx"
     =/  diff-a-b  (lusk a b (loss a b))
     =/  diff-b-a  (lusk b a (loss b a))
-    =/  p-a  (lurk b (berk diff-a-b))
-    =/  p-b  (lurk a (berk diff-b-a))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  patch-a  (lurk b (berk diff-a-b))
+    =/  patch-b  (lurk a (berk diff-b-a))
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
     ::  individuals diffs
     ::
     =/  a  "10qawsedrftg"
     =/  b  "1Aqawsedrftg"
-    =/  dif=(urge:clay cord)
+    =/  diff=(urge:clay cord)
       :~  ::  copies first match
           ::
           [%.y 1]
@@ -87,11 +101,13 @@
           ::
           [%.y 10]
       ==
-    (expect-eq !>(a) !>((lurk b (berk dif))))
+    %+  expect-eq
+      !>  a
+      !>  (lurk b (berk diff))
     ::
     =/  a  "1qawsedrftg10"
     =/  b  "1Aqawsedrftg"
-    =/  dif=(urge:clay cord)
+    =/  diff=(urge:clay cord)
       :~  ::  copies first match
           ::
           [%.y 1]
@@ -105,7 +121,9 @@
           ::
           [%.n (flop "10") ~]
       ==
-    (expect-eq !>(a) !>((lurk b (berk dif))))
+    %+  expect-eq
+      !>  a
+      !>  (lurk b (berk diff))
   ==
 ::
 ::  ++loss:differ: longest subsequence
@@ -144,7 +162,7 @@
     :: Non contiguous
     ::
     %+  expect-eq
-      ::  From wikipedia:
+      ::  Example from wikipedia:
       ::  https://en.wikipedia.org/wiki/Longest_common_subsequence_problem
       ::
       !>  "MJAU"
@@ -161,53 +179,81 @@
     ::  (some) test examples adapted from:
     ::  https://github.com/gioele/diff-lcs/blob/master/test/test_diff-lcs.rb
     ::
-    =/  a=wain  "abcehjlmnp"
-    =/  b=wain  "bcdefjklmrst"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "abcehjlmnp"
+    =/  b  "bcdefjklmrst"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "abcde"
-    =/  b=wain  "ae"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "abcde"
+    =/  b  "ae"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "ae"
-    =/  b=wain  "abcde"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "ae"
+    =/  b  "abcde"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "vxae"
-    =/  b=wain  "wyabcde"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "vxae"
+    =/  b  "wyabcde"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "xae"
-    =/  b=wain  "abcde"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "xae"
+    =/  b  "abcde"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "ae"
-    =/  b=wain  "xabcde"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "ae"
+    =/  b  "xabcde"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
-    =/  a=wain  "aev"
-    =/  b=wain  "xabcdewx"
-    =/  p-b  (lurk a (lusk a b (loss a b)))
-    =/  p-a  (lurk b (lusk b a (loss b a)))
-    (expect-eq !>(a^b) !>(p-a^p-b))
+    =/  a  "aev"
+    =/  b  "xabcdewx"
+    =/  diff-a-b  (lusk a b (loss a b))
+    =/  diff-b-a  (lusk b a (loss b a))
+    =/  patch-b   (lurk a diff-a-b)
+    =/  patch-a   (lurk b diff-b-a)
+    %+  expect-eq
+      !>  a^b
+      !>  patch-a^patch-b
     ::
     ::  individuals diffs
     ::
     =/  a  "10qawsedrftg"
     =/  b  "1Aqawsedrftg"
-    =/  dif=(urge:clay cord)
+    =/  diff=(urge:clay cord)
       :~  ::  copies first match
           ::
           [%.y 1]
@@ -218,11 +264,13 @@
           ::
           [%.y 10]
       ==
-    (expect-eq !>(b) !>((lurk a dif)))
+    %+  expect-eq
+      !>  b
+      !>  (lurk a diff)
     ::
     =/  a  "1qawsedrftg10"
     =/  b  "1Aqawsedrftg"
-    =/  dif=(urge:clay cord)
+    =/  diff=(urge:clay cord)
       :~  ::  copies first match
           ::
           [%.y 1]
@@ -236,7 +284,9 @@
           ::
           [%.n (flop "10") ~]
       ==
-    (expect-eq !>(b) !>((lurk a dif)))
+    %+  expect-eq
+      !>  b
+      !>  (lurk a diff)
   ==
 ::  ++lusk:differ: lcs to list patch
 ::
@@ -245,9 +295,9 @@
     ::  (some) test examples adapted from:
     ::  https://github.com/gioele/diff-lcs/blob/master/test/test_diff-lcs.rb
     ::
-    =/  a=wain  "abcehjlmnp"
-    =/  b=wain  "bcdefjklmrst"
-    =/  diff=(urge:clay cord)
+    =/  a  "abcehjlmnp"
+    =/  b  "bcdefjklmrst"
+    =/  diff
       :~  [%.n ~['a'] ~]
           [%.y 2]
           [%.n ~ ~['d']]
@@ -260,33 +310,33 @@
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
     ::
-    =/  a=wain  "abcde"
-    =/  b=wain  "ae"
-    =/  diff=(urge:clay cord)
+    =/  a  "abcde"
+    =/  b  "ae"
+    =/  diff
       :~  [%.y 1]
           [%.n (flop "bcd") ~]
           [%.y 1]
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
     ::
-    =/  a=wain  "ae"
-    =/  b=wain  "abcde"
-    =/  diff=(urge:clay cord)
+    =/  a  "ae"
+    =/  b  "abcde"
+    =/  diff
       :~  [%.y 1]
           [%.n ~ (flop "bcd")]
           [%.y 1]
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
     ::
-    =/  a=wain  "vxae"
-    =/  b=wain  "wyabcde"
-    =/  diff=(urge:clay cord)
+    =/  a  "vxae"
+    =/  b  "wyabcde"
+    =/  diff
       :~  [%.n (flop "vx") (flop "wy")]
           [%.y 1]
           [%.n ~ (flop "bcd")]
@@ -294,11 +344,11 @@
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
     ::
-    =/  a=wain  "xae"
-    =/  b=wain  "abcde"
-    =/  diff=(urge:clay cord)
+    =/  a  "xae"
+    =/  b  "abcde"
+    =/  diff
       :~  [%.n "x" ~]
           [%.y 1]
           [%.n ~ (flop "bcd")]
@@ -306,11 +356,11 @@
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
     ::
-    =/  a=wain  "ae"
-    =/  b=wain  "xabcde"
-    =/  diff=(urge:clay cord)
+    =/  a  "ae"
+    =/  b  "xabcde"
+    =/  diff
       :~  [%.n ~ "x"]
           [%.y 1]
           [%.n ~ (flop "bcd")]
@@ -318,11 +368,11 @@
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
     ::
-    =/  a=wain  "aev"
-    =/  b=wain  "xabcdewx"
-    =/  diff=(urge:clay cord)
+    =/  a  "aev"
+    =/  b  "xabcdewx"
+    =/  diff
       :~  [%.n ~ "x"]
           [%.y 1]
           [%.n ~ (flop "bcd")]
@@ -331,6 +381,6 @@
       ==
     %+  expect-eq
       !>  diff
-      !>  `(urge:clay cord)`(lusk a b (loss a b))
+      !>  (lusk a b (loss a b))
   ==
 --

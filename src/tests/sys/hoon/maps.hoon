@@ -1,4 +1,4 @@
-::  Tests for +in (map logic )
+::  Tests for +by (map logic)
 ::
 /+  *test
 ::
@@ -13,75 +13,6 @@
       %+  turn  l
         |=  k=@
         [k (mul 2 k)]
-    ::
-    ::  The +uno:by arm has currently an issue coming from the fact that
-    ::  +mor follows non-strict ordering (mor 1 1) -> %.y
-    ::  which causes that that comparison of equality[1] between the nodes from
-    ::  from the different maps is never reached and the +meg arm is never
-    ::  called.[2] The following example (used in this test suite) shows it:
-    ::  =/  a  (my ~[[1 9] [7 3] [8 5]])
-    ::  =/  b  (my ~[[1 2] [7 2]])
-    ::  ((~(uno by a) b) |=([k=@ v=@ w=@] (add v w)))
-    ::  > [n=[p=8 q=5] l=~ r=[n=[p=7 q=2] l={} r={[p=1 q=2]}]]
-    ::
-    ::  Instead of:
-    ::  > [n=[p=8 q=5] l=~ r=[n=[p=7 q=5] l={} r={[p=1 q=11]}]]
-    ::
-    ::  The same issue with mor being non-strict[3] also occurs in +uni:by
-    ::
-    ::  The two new arms proposed here to replace +uno and +uni
-    ::  (+general-union and +merge-union) remove the equality comparison that is
-    ::  never reached and, in the case of +general-union move the call to +meg
-    ::  to the branch where (mor p.n.a p.n.b) and =(p.n.b p.n.a) [4]
-    ::  both return yes.
-    ::
-    ::  The new arms are tested in this suite togetther with +uni and +uno
-    ::
-    ::  Notes:
-    ::  [1]
-    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1648
-    ::  [2]
-    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1649
-    ::  [3]
-    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1619
-    ::  [4]
-    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1644
-    ::
-    ++  general-union
-      |=  [a=(map @ @) b=(map @ @) meg=$-([@ @ @] @)]
-      |-  ^+  a
-      ?~  b
-        a
-      ?~  a
-        b
-      ?:  (mor p.n.a p.n.b)
-        ?:  =(p.n.b p.n.a)
-          :+  [p.n.a (meg p.n.a q.n.a q.n.b)]
-            $(b l.b, a l.a)
-          $(b r.b, a r.a)
-        ?:  (gor p.n.b p.n.a)
-          $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
-        $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
-      ?:  (gor p.n.a p.n.b)
-        $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
-      $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
-    ::
-    ++  merge-union
-      |=  [a=(map @ @) b=(map @ @)]
-      |-  ^+  a
-      ?~  b
-        a
-      ?~  a
-        b
-      ?:  (mor p.n.a p.n.b)
-        ?:  =(p.n.b p.n.a)
-          [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
-        ?:  (gor p.n.b p.n.a)
-          $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
-        $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
-      ?:  (gor p.n.a p.n.b)
-        $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
-      $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
     --
 ::
 =>  ::  Test Data
@@ -108,25 +39,25 @@
     ::  Checks with empty map
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(all by m-nul) |=(* &))
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(all by m-nul) |=(* |))
     ::  Checks one element fails
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(all by m-uno) |=(e=@ =(e 43)))
     ::  Checks >1 element fails
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(all by m-dos) |=(e=@ (lth e 4)))
     ::  Checks all elements pass
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(all by m-des) |=(e=@ (lth e 80)))
   ==
 ::
@@ -137,34 +68,34 @@
     ::  Checks with empty map
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any by m-nul) |=(* &))
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any by m-nul) |=(* |))
     ::  Checks one element fails
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any by m-uno) |=(e=@ =(e 43)))
     ::  Checks >1 element fails
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any by m-dos) |=(e=@ (lth e 4)))
     ::  Checks one element passes
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(any by m-des) |=(e=@ =(e 14)))
     ::  Checks all element pass
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(any by m-des) |=(e=@ (lth e 100)))
   ==
 ::
-::  Test check correctnes (correct horizontal/vertical order)
+::  Test check correctnes (correct horizontal & vertical order)
 ::
 ++  test-map-apt  ^-  tang
   ::  manually constructed maps with predefined vertical/horizontal
@@ -191,28 +122,55 @@
   ::    1.923.673.882
   ::
   ::  and the ordering 1 < 2 < 3.
+  ::
   ::  1 should be in the left brach and 3 in the right one.
   ::
   =/  balanced-a=(map @ @)    [[2 2] [[1 1] ~ ~] [[3 3] ~ ~]]
   ::  doesn't follow vertical ordering
   ::
   =/  unbalanced-a=(map @ @)  [[1 1] [[2 2] ~ ~] [[3 3] ~ ~]]
+  =/  unbalanced-b=(map @ @)  [[1 1] ~ [[2 2] ~ ~]]
+  =/  unbalanced-c=(map @ @)  [[1 1] [[2 2] ~ ~] ~]
   ::  doesn't follow horizontal ordering
   ::
-  =/  unbalanced-b=(map @ @)  [[2 2] [[3 3] ~ ~] [[1 1] ~ ~]]
+  =/  unbalanced-d=(map @ @)  [[2 2] [[3 3] ~ ~] [[1 1] ~ ~]]
   ::  doesn't follow horizontal & vertical ordering
   ::
-  =/  unbalanced-c=(map @ @)  [[1 1] [[3 3] ~ ~] [[2 2] ~ ~]]
+  =/  unbalanced-e=(map @ @)  [[1 1] [[3 3] ~ ~] [[2 2] ~ ~]]
   ;:  weld
-    (expect-eq !>(b-a+%.y) !>(b-a+~(apt by balanced-a)))
-    (expect-eq !>(u-a+%.n) !>(u-a+~(apt by unbalanced-a)))
-    (expect-eq !>(u-b+%.n) !>(u-b+~(apt by unbalanced-b)))
-    (expect-eq !>(u-c+%.n) !>(u-c+~(apt by unbalanced-c)))
+    %+  expect-eq
+      !>  [%b-a %.y]
+      !>  [%b-a ~(apt by balanced-a)]
+    %+  expect-eq
+      !>  [%u-a %.n]
+      !>  [%u-a ~(apt by unbalanced-a)]
+    %+  expect-eq
+      !>  [%u-b %.n]
+      !>  [%u-b ~(apt by unbalanced-b)]
+    %+  expect-eq
+      !>  [%u-c %.n]
+      !>  [%u-c ~(apt by unbalanced-c)]
+    %+  expect-eq
+      !>  [%u-d %.n]
+      !>  [%u-d ~(apt by unbalanced-d)]
+    %+  expect-eq
+      !>  [%u-e %.n]
+      !>  [%u-e ~(apt by unbalanced-e)]
   ==
 ::
 ::  Test bifurcation (i.e. splits map a into two, discarding -.a)
 ::
 ++  test-map-bif  ^-  tang
+  ::  The traversal of the +map is done comparing the double +mug
+  ::  of the key of the added node and the one from the tree.
+  ::  Because of this, the search will stop at different leaves,
+  ::  based on the value of the hash, therefore the right and left
+  ::  maps that are returned can be different
+  ::  (null or a less than the total number of nodes)
+  ::  The best way to check is that the sum of the number of nodes
+  ::  in both maps are the same as before, and that both returned
+  ::  maps are correct
+  ::
   =/  splits-a=[(map) (map)]  (~(bif by m-des) [99 99])
   =/  splits-b=[(map) (map)]  (~(bif by m-des) [6 12])
   ;:  weld
@@ -222,16 +180,6 @@
       !>  [~ ~]
       !>  (~(bif by m-nul) [1 2])
     ::  Checks bifurcating by non-existing element
-    ::
-    ::  The traversal of the +map is done comparing the 2x +mug
-    ::  of the key of the added node and the one from the tree.
-    ::  Because of this, the search will stop at different leaves,
-    ::  based on the value of the hash, therefore the right and left
-    ::  maps that are returned can be different
-    ::  (null or a less than the total number of nodes)
-    ::  The best way to check is that the sum of the number of nodes
-    ::  in both maps are the same as before, and that both returned
-    ::  maps are correct
     ::
     %+  expect-eq
       !>  7
@@ -313,6 +261,7 @@
 ::
 ++  test-map-dig  ^-  tang
   =/  custom      [[2 4] [[1 2] ~ ~] [[3 6] ~ ~]]
+  =/  custome-vase  !>(custom)
   =/  manual-map=(map @ @)  custom
   ;:  weld
     ::  Checks with empty map
@@ -325,19 +274,19 @@
     %+  expect-eq
       !>  ~
       !>  (~(dig by m-des) 9)
-    ::  Checks success via tree addressing. We use the return axis
+    ::  Checks success via tree addressing. Uses the return axis
     ::  to address the raw noun and check that it gives the corresponding
     ::  value from the key.
     ::
     %+  expect-eq
       !>  [1 (~(got by manual-map) 1)]
-      !>  +:(slot (need (~(dig by manual-map) 1)) !>(custom))
+      !>  +:(slot (need (~(dig by manual-map) 1)) custome-vase)
     %+  expect-eq
       !>  [2 (~(got by manual-map) 2)]
-      !>  +:(slot (need (~(dig by manual-map) 2)) !>(custom))
+      !>  +:(slot (need (~(dig by manual-map) 2)) custome-vase)
     %+  expect-eq
       !>  [3 (~(got by manual-map) 3)]
-      !>  +:(slot (need (~(dig by manual-map) 3)) !>(custom))
+      !>  +:(slot (need (~(dig by manual-map) 3)) custome-vase)
   ==
 ::
 ::  Test concatenate
@@ -434,17 +383,17 @@
     ::  Checks with empty map
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(has by m-nul) 6)
     ::  Checks with non-existing key
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(has by m-des) 9)
     ::  Checks success
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(has by m-des) 7)
   ==
 ::
@@ -475,15 +424,15 @@
     %+  expect-eq
       !>  (map-of-doubles (limo ~[1 7 4 6]))
       !>  (~(int by m-des) m-dup)
-    ::  Checks using value from b
+    ::  Checks replacing value from b
     ::
     %+  expect-eq
       !>  (my [6 99]~)
       !>  (~(int by m-dos) (my [6 99]~))
   ==
 ::
-::  Searches for a specific key and modifies its value with the result
-::  of the provided gate
+::  Test search for a specific key and modifies
+::  its value with the result of the provided gate
 ::
 ++  test-map-jab  ^-  tang
   ;:  weld
@@ -582,17 +531,17 @@
     ::  Checks success
     ::
     %+  expect-eq
-      ::  m-dos => {[p=6 q=12] [p=9 q=18]}
-      ::  acc   => (12 - 6) + (18 - 9) => 15
-      !>  b=15
-      !>  (~(rep by m-dos) rep-gate)
+      ::  m-asc => {[5 10] [7 14] [6 12] [1 2] [2 4] [3 6] [4 8]}
+      ::  acc   => 12-6+10-5+14-7+8-4+6-3+4-2+2-1 => 28
+      !>  b=28
+      !>  (~(rep by m-asc) rep-gate)
   ==
 ::
 ::  Test Test transform + product
 ::
 ++  test-map-rib  ^-  tang
-  ::  We accumulate the multiples we have in our array
-  ::  and drain the pairs whose values are double of their keys.
+  ::  Accumulates multiples in an array and drains the pairs
+  ::  whose values are double of their keys.
   ::
   =/  rib-gate
     |=  [a=[@ @] acc=(list @)]
@@ -600,6 +549,8 @@
     ?:  =(2 (div +.a -.a))
       [-.a 0]
     a
+  =/  list-of-2s  (reap 7 2)
+  =/  zeroed-map  (my ~[[1 0] [2 0] [3 0] [4 0] [5 0] [6 0] [7 0]])
   ;:  weld
     ::  Checks with empty map
     ::
@@ -609,11 +560,11 @@
     ::  Checks success
     ::
     %+  expect-eq
-      !>  [(reap 7 2) (my ~[[1 0] [2 0] [3 0] [4 0] [5 0] [6 0] [7 0]])]
+      !>  [list-of-2s zeroed-map]
       !>  (~(rib by m-asc) *(list @) rib-gate)
   ==
 ::
-::  apply gate to values
+::  Test apply gate to values
 ::
 ++  test-map-run  ^-  tang
   ;:  weld
@@ -648,17 +599,28 @@
 ::  Test listify pairs
 ::
 ++  test-map-tap  ^-  tang
+  =/  by-key  |=([[k=@ v=@] [q=@ w=@]] (gth k q))
   ;:  weld
     ::  Checks with empty map
     ::
     %+  expect-eq
       !>  ~
       !>  ~(tap by ~)
-    ::  Checks success
+    ::  Checks success with 2 pairs
     ::
     %+  expect-eq
-      !>  ~[[p=9 q=18] [p=6 q=12]]
-      !>  ~(tap by m-dos)
+      !>  (sort ~[[9 18] [6 12]] by-key)
+      !>  (sort ~(tap by m-dos) by-key)
+    ::  Checks success with 7 pairs
+    ::
+    %+  expect-eq
+      !>  (sort ~[[1 2] [2 4] [3 6] [4 8] [5 10] [7 14] [6 12]] by-key)
+      !>  (sort ~(tap by m-asc) by-key)
+    ::  Checks success with 5 pairs (from list with duplicates)
+    ::
+    %+  expect-eq
+      !>  (sort ~[[7 14] [6 12] [9 18] [1 2] [4 8]] by-key)
+      !>  (sort ~(tap by m-dup) by-key)
   ==
 ::
 ::  Test the union of maps
@@ -673,7 +635,7 @@
     %+  expect-eq
       !>  m-des
       !>  (~(uni by m-des) m-nul)
-    ::  Checks with all keys different
+    ::  Checks with disjoint keys
     ::
     =/  keys  (limo ~[1 2 3 4 5 6 7 8])
     =/  a=(map @ @)  (map-of-doubles (scag 4 keys))
@@ -681,7 +643,7 @@
     %+  expect-eq
       !>  (map-of-doubles keys)
       !>  (~(uni by a) b)
-    ::  Checks union all keys equal
+    ::  Checks union of sets with all keys equal
     ::
     %+  expect-eq
       !>  m-asc
@@ -693,37 +655,6 @@
     %+  expect-eq
       !>  d
       !>  (~(uni by c) d)
-    ::
-    ::  +merge-union arm test
-    ::
-    ::  Checks with empty map (a or b)
-    ::
-    %+  expect-eq
-      !>  m-des
-      !>  (merge-union m-nul m-des)
-    %+  expect-eq
-      !>  m-des
-      !>  (merge-union m-des m-nul)
-    ::  Checks with all keys different
-    ::
-    =/  keys  (limo ~[9 15])
-    =/  a=(map @ @)  (map-of-doubles (scag 4 keys))
-    =/  b=(map @ @)  (map-of-doubles (slag 4 keys))
-    %+  expect-eq
-      !>  (map-of-doubles keys)
-      !>  (merge-union a b)
-    ::  Checks total union
-    ::
-    %+  expect-eq
-      !>  m-asc
-      !>  (merge-union m-asc m-des)
-    ::  Checks union with value replacement from b
-    ::
-    =/  c=(map @ @)  (my [1 12]~)
-    =/  d=(map @ @)  (my [1 24]~)
-    %+  expect-eq
-      !>  d
-      !>  (merge-union c d)
   ==
 ::
 ::  Test general union
@@ -760,37 +691,6 @@
     %+  expect-eq
       !>  (my ~[[1 11] [7 5] [8 5]])
       !>  ((~(uno by a) b) union-gate)
-    ::
-    ::  +general-union arm test
-    ::
-    ::  Checks with empty map (a or b)
-    ::
-    %+  expect-eq
-      !>  m-des
-      !>  (general-union m-nul m-des union-gate)
-    %+  expect-eq
-      !>  m-des
-      !>  (general-union m-des m-nul union-gate)
-    ::  Checks with all keys different
-    ::
-    =/  keys  (limo ~[9 15])
-    =/  a=(map @ @)  (map-of-doubles (scag 4 keys))
-    =/  b=(map @ @)  (map-of-doubles (slag 4 keys))
-    %+  expect-eq
-      !>  (map-of-doubles keys)
-      !>  (general-union a b union-gate)
-    ::  Checks total union
-    ::
-    %+  expect-eq
-      !>  (my ~[[1 4] [2 8] [3 12] [4 16] [5 20] [6 24] [7 28]])
-      !>  (general-union m-asc m-des union-gate)
-    ::  Checks partial union
-    ::
-    =/  a=(map @ @)  (my ~[[1 9] [7 3] [8 5]])
-    =/  b=(map @ @)  (my ~[[1 2] [7 2]])
-    %+  expect-eq
-      !>  (my ~[[1 11] [7 5] [8 5]])
-      !>  (general-union a b union-gate)
   ==
 ::
 ::  Test apply gate to nodes (duplicates +rut)
@@ -812,6 +712,7 @@
 ::  Test produce list of vals
 ::
 ++  test-map-val  ^-  tang
+  =/  double  |=(e=@ (mul 2 e))
   ;:  weld
     ::  Checks with empty map
     ::
@@ -822,22 +723,20 @@
     ::
     =/  a=(list @)  ~(tap in (sy ~[1 1 7 4 6 9 4]))
     %+  expect-eq
-      ::  we need to sort since the map is not sorted
-      ::
-      !>  (sort (turn a |=(e=@ (mul 2 e))) gth)
+      !>  (sort (turn a double) gth)
       !>  (sort ~(val by m-dup) gth)
-    ::  Checks correctness (no duplicates)
+    ::  Checks success
     ::
     =/  b=(list @)  ~(tap in (sy (gulf 1 7)))
     %+  expect-eq
-      !>  (sort (turn b |=(e=@ (mul 2 e))) gth)
+      !>  (sort (turn b double) gth)
       !>  (sort ~(val by m-asc) gth)
   ==
 ::
 ::  Tests the size of map
 ::
 ++  test-map-wyt  ^-  tang
-  ::  We ran all the tests in the suite
+  ::  Runs all the tests in the suite
   ::
   =/  sizes=(list @)
     %+  turn  m-lis
@@ -845,5 +744,4 @@
   %+  expect-eq
     !>  sizes
     !>  (limo ~[0 1 2 2 7 7 7 5])
-::
 --

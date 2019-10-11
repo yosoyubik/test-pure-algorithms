@@ -2,79 +2,6 @@
 ::
 /+  *test
 ::
-=>  ::  The current +apt:to arm checks if the +qeu is balanced by
-    ::  asserting if the left and right children of the parent node
-    ::  are in ascending double +mug order.
-    ::
-    ::  &((mor n.l.a n.r.a)
-    ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1746
-    ::
-    ::  This is not how the +qeu is constructed. Inspecting the +bal:to
-    ::  arm we can see that the order of the nodes of the resulting tree is such
-    ::  that each parent has lower priority than any of its children.
-    ::  e.g:
-    ::    (mor n.a n.l.a)
-    :: https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1763
-    ::    (mor n.a n.r.a)
-    :: https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1765
-    ::
-    ::  This corresponds to the representation of the +qeu as a min-heap where
-    ::  the heap property[1] states that the priority of any parent node is less
-    ::  than its children.
-    ::  Treaps usually follow another property tipycall of BST[2], the nodes
-    ::  of the tree follow a sorting order such as nodes on the left branch
-    ::  are lower than the parent node, and viceversa for nodes of the right
-    ::  branch.
-    ::
-    ::  The +check arm declared here implements the proper vertical check.
-    ::  The +test-queue-apt arm declared in this test suite validates +check
-    ::  functionality in comparison with the +apt:to arm defined in hoon.hoon
-    ::
-    ::  Notes:
-    ::  [1]
-    ::https://opendatastructures.org/ods-python/7_2_Treap_Randomized_Binary.html
-    ::
-    ::  [2]
-    ::  In the current implementation, the +qeu does not behave as usually
-    ::  is intended for Treaps, that is, it does not have the properties of a
-    ::  Binary Search Tree. The fact that there is not a sorting function
-    ::  provided when defining the data structure makes that the nodes are not
-    ::  ordered and therefore can't handle a search where one would expect the
-    ::  nodes with lower value (according to a specific sorting function) to be
-    ::  in the left branch of the tree, in comparison to the nodes on the
-    ::  right side of the tree.
-    ::
-    ::  For example, the following insertion in the +qeu:
-    ::    ~[99 3 4 53 88 99 625 7 1 3 9 8 7]
-    ::  produces this tree:
-    ::
-    ::                            8
-    ::                           / \
-    ::                          7   625
-    ::                             /   \
-    ::                            7     4
-    ::                           /     / \
-    ::                          9     53  3
-    ::                          \    /     \
-    ::                           1  99     99
-    ::                          /     \
-    ::                         3      88
-    ::
-    ::  The structure is a product of the order of insertion (FIFO in this case)
-    ::
-    |%
-    ++  check
-      |=  a=(qeu)
-      ^-  ?
-      ?~  a  &
-      |-  ^-  ?
-      ?~  l.a  &
-      ?~  r.a  &
-      ?&  ?&((mor n.a n.l.a) $(a l.a))
-          ?&((mor n.a n.r.a) $(a r.a))
-      ==
-    --
-::
 =>  ::  Test Data
     ::
     |%
@@ -88,7 +15,7 @@
     ++  l-des  ~[7 6 5 4 3 2 1]
     ++  l-uns  ~[1 6 3 5 7 2 4]
     ++  l-dup  ~[1 1 7 4 6 9 4]
-    ::  we tagged each entry in the test suite to easily identify
+    ::  Each entry in the test suite is tagged to identify
     ::  the +to arm that fails with a specific queue.
     ::
     ++  q-nul  [%nul (~(gas to *(qeu)) ~)]
@@ -116,10 +43,10 @@
 ::  Testing arms
 ::
 |%
-::  check correctness
+::  Test check correctness
 ::
 ++  test-queue-apt  ^-  tang
-  ::  manually constructed queues with predefined vertical ordering
+  ::  Manually constructed queues with predefined vertical ordering
   ::  for the following three elements (1, 2, 3) the priorities are:
   ::    > (mug (mug 1))
   ::    1.405.103.437
@@ -137,26 +64,33 @@
   =/  unbalanced-a=(qeu @)  [3 [2 ~ ~] [1 ~ ~]]
   =/  unbalanced-b=(qeu @)  [1 [3 ~ ~] [2 ~ ~]]
   =/  unbalanced-c=(qeu @)  [3 [1 ~ ~] [2 ~ ~]]
+  =/  unbalanced-d=(qeu @)  [3 ~ [2 ~ ~]]
+  =/  unbalanced-e=(qeu @)  [3 [1 ~ ~] ~]
   ;:  weld
-    ::  We expect +apt:to to return %.y with balanced trees
-    ::  that have higher priority on the right branch than
-    ::  in the left branch, independent of the other values.
-    ::
-    (expect-eq !>(b-a+%.n) !>(b-a+~(apt to balanced-a)))
-    (expect-eq !>(b-b+%.y) !>(b-b+~(apt to balanced-b)))
-    (expect-eq !>(u-a+%.y) !>(u-a+~(apt to unbalanced-a)))
-    (expect-eq !>(u-b+%.n) !>(u-b+~(apt to unbalanced-b)))
-    (expect-eq !>(u-c+%.n) !>(u-c+~(apt to unbalanced-c)))
-    ::  The correct +check arm should only return %.y for balanced trees
-    ::
-    (expect-eq !>(cb-a+%.y) !>(cb-a+(check balanced-a)))
-    (expect-eq !>(cb-b+%.y) !>(cb-b+(check balanced-b)))
-    (expect-eq !>(cu-a+%.n) !>(cu-a+(check unbalanced-a)))
-    (expect-eq !>(cu-b+%.n) !>(cu-b+(check unbalanced-b)))
-    (expect-eq !>(cu-c+%.n) !>(cu-c+(check unbalanced-c)))
+    %+  expect-eq
+      !>  [%b-a %.y]
+      !>  [%b-a ~(apt to balanced-a)]
+    %+  expect-eq
+      !>  [%b-b %.y]
+      !>  [%b-b ~(apt to balanced-b)]
+    %+  expect-eq
+      !>  [%u-a %.n]
+      !>  [%u-a ~(apt to unbalanced-a)]
+    %+  expect-eq
+      !>  [%u-b %.n]
+      !>  [%u-b ~(apt to unbalanced-b)]
+    %+  expect-eq
+      !>  [%u-c %.n]
+      !>  [%u-c ~(apt to unbalanced-c)]
+    %+  expect-eq
+      !>  [%u-d %.n]
+      !>  [%u-d ~(apt to unbalanced-d)]
+    %+  expect-eq
+      !>  [%u-e %.n]
+      !>  [%u-e ~(apt to unbalanced-e)]
   ==
 ::
-::  Balances the queue
+::  Test balancing the queue
 ::
 ++  test-queue-bal  ^-  tang
   ::  Manually created queues explicitly unbalanced
@@ -167,21 +101,18 @@
   =/  unbalanced-b=(qeu @)  [1 [3 ~ ~] [2 ~ ~]]
   =/  unbalanced-c=(qeu @)  [3 [1 ~ ~] [2 ~ ~]]
   ;:  weld
-    ::  We expect +apt:to to return %.y with balanced trees
-    ::  that have higher priority on the right branch than
-    ::  in the left branch, independent of the other values.
-    ::
-    (expect-eq !>(u-a+%.y) !>(u-a+~(apt to ~(bal to unbalanced-a))))
-    (expect-eq !>(u-b+%.y) !>(u-b+~(apt to ~(bal to unbalanced-b))))
-    (expect-eq !>(u-c+%.y) !>(u-c+~(apt to ~(bal to unbalanced-c))))
-    ::  The correct +check arm should only return %.y for balanced trees
-    ::
-    (expect-eq !>(cu-a+%.y) !>(cu-a+(check ~(bal to unbalanced-a))))
-    (expect-eq !>(cu-b+%.y) !>(cu-b+(check ~(bal to unbalanced-b))))
-    (expect-eq !>(cu-c+%.y) !>(cu-c+(check ~(bal to unbalanced-c))))
+    %+  expect-eq
+      !>  [%u-a %.y]
+      !>  [%u-a ~(apt to ~(bal to unbalanced-a))]
+    %+  expect-eq
+      !>  [%u-b %.y]
+      !>  [%u-b ~(apt to ~(bal to unbalanced-b))]
+    %+  expect-eq
+      !>  [%u-c %.y]
+      !>  [%u-c ~(apt to ~(bal to unbalanced-c))]
   ==
 ::
-::  max depth of queue
+::  Test max depth of queue
 ::
 ++  test-queue-dep  ^-  tang
   ::  Manually created queues with known depth
@@ -193,21 +124,33 @@
   =/  length-e=(qeu @)  [5 [4 [2 ~ [1 ~ ~]] ~] [3 ~ ~]]
   =/  length-f=(qeu @)  [5 [4 [1 ~ ~] [9 ~ ~]] [3 [6 ~ ~] [7 ~ ~]]]
   ;:  weld
-    (expect-eq !>(l-a+2) !>(l-a+~(dep to length-a)))
-    (expect-eq !>(l-b+1) !>(l-b+~(dep to length-b)))
-    (expect-eq !>(l-c+4) !>(l-c+~(dep to length-c)))
-    (expect-eq !>(l-d+4) !>(l-d+~(dep to length-d)))
-    (expect-eq !>(l-e+4) !>(l-e+~(dep to length-e)))
-    (expect-eq !>(l-f+3) !>(l-f+~(dep to length-f)))
+    %+  expect-eq
+      !>  [%l-a 2]
+      !>  [%l-a ~(dep to length-a)]
+    %+  expect-eq
+      !>  [%l-b 1]
+      !>  [%l-b ~(dep to length-b)]
+    %+  expect-eq
+      !>  [%l-c 4]
+      !>  [%l-c ~(dep to length-c)]
+    %+  expect-eq
+      !>  [%l-d 4]
+      !>  [%l-d ~(dep to length-d)]
+    %+  expect-eq
+      !>  [%l-e 4]
+      !>  [%l-e ~(dep to length-e)]
+    %+  expect-eq
+      !>  [%l-f 3]
+      !>  [%l-f ~(dep to length-f)]
   ==
 ::
-::  insert list into queue
+::  Test insert list into queue
 ::
 ++  test-queue-gas  ^-  tang
   =/  actual=(list [term ?])
     %+  turn  queues
       |=  [t=term s=(qeu)]
-      ::  we use +apt to check the correctness
+      ::  We use +apt to check the correctness
       ::  of the queues created with +gas
       ::
       [t ~(apt to s)]
@@ -224,7 +167,7 @@
     ::
     :_  ~
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  ~(apt to (~(gas to +:q-dos) ~[9 10]))
     ::  Checks adding existing elements
     ::
@@ -234,7 +177,7 @@
       !>  (~(gas to +:q-asc) (gulf 1 3))
   ==
 ::
-::  head-rest pair
+::  Test getting head-rest pair
 ::
 ++  test-queue-get  ^-  tang
   =/  expected=(map term [@ (qeu)])
@@ -268,7 +211,7 @@
       |.  ~(get to +:q-nul)
   ==
 ::
-::  Tests removing the root (more specialized balancing operation)
+::  Test removing the root (more specialized balancing operation)
 ::
 ++  test-queue-nip  ^-  tang
   =/  actual=(list [term ?])
@@ -293,14 +236,13 @@
         |.  ~(nap to +:q-nul)
     ==
 ::
-::  Tests removing the root
+::  Test removing the root
 ::
-::    TL;DR: current comment at L:1788 to %/sys/hoon/hoon.hoon is wrong
-::    For a longer explanation read
+::    Current comment at L:1788 to %/sys/hoon/hoon.hoon is wrong
+::    For a longer explanation read:
 ::    https://github.com/urbit/urbit/issues/1577#issuecomment-483845590
 ::
 ++  test-queue-nap  ^-  tang
-
   =/  actual=(list [term ?])
     %+  turn  queues
       ::  The queue representation follows vertical ordering
@@ -323,7 +265,7 @@
         |.  ~(nap to +:q-nul)
     ==
 ::
-::  Tests inserting new tail
+::  Test inserting new tail
 ::
 ++  test-queue-put  ^-  tang
   =/  q-uno  (~(gas to *(qeu)) ~[42])
@@ -348,7 +290,7 @@
       !>  (~(put to q-asc) 8)
   ==
 ::
-::  Tests producing a queue a as a list from front to back
+::  Test producing a queue a as a list from front to back
 ::
 ++  test-queue-tap  ^-  tang
   ::  We ran all queues in the suite against the corresponding lists
@@ -359,11 +301,9 @@
   =/  actual=(list (list))
     %+  turn  queues
       |=(iq=(qeu) ~(tap to iq))
-  %+  expect-eq
-    !>  lists
-    !>  actual
+  (expect-eq !>(lists) !>(actual))
 ::
-::  Tests producing the head of the queue
+::  Test producing the head of the queue
 ::
 ++  test-queue-top  ^-  tang
   ::  In order to know beforehand which element of the +qeu will become
@@ -394,16 +334,13 @@
   ::  which is what we are looking for.
   ::
   =/  expected=(map term @)
-    %-  my
-    :~  uno+42  dos+6  tre+1  tri+1
-        tra+3   asc+1  des+7  uns+1  dup+1
-    ==
+    (my ~[uno+42 dos+6 tre+1 tri+1 tra+3 asc+1 des+7 uns+1 dup+1])
   =/  heads=(list [term (unit)])
     %+  turn  queues
       |=([t=term iq=(qeu)] [t ~(top to iq)])
   %-  zing
   ;:  weld
-    ::  All the tests to the suite
+    ::  All the tests in the suite
     ::
     %+  turn  heads
       |=  [t=term u=(unit)]
@@ -413,7 +350,8 @@
     :_  ~
     ::  Top of an empty queue is ~
     ::
-    (expect-eq !>(~) !>(~(top to +:q-nul)))
+    %+  expect-eq
+      !>  ~
+      !>  ~(top to +:q-nul)
   ==
-::
 --

@@ -1,50 +1,11 @@
-::  Tests for +to (queue logic )
+::  Tests for +in (set logic)
 ::
 /+  *test
-::
-=>  ::  Utility core
-    ::
-    |%
-    ++  list-to-set
-      |=  l=(list @)  ^-  (set @)
-      (sy l)
-      ::
-      ::  The +uni:in arm has currently an issue coming from the fact that
-      ::  +mor follows non-strict ordering (mor 1 1) -> %.y
-      ::  which causes that the comparison of equality[1] between the nodes from
-      ::  from the different maps is never reached.
-      ::
-      ::  The new arms proposed here to replace +uni:in called +union removes
-      ::  the equality comparison that is never reached.
-      ::
-      ::  The new arm is tested in this suite togetther with +uni.
-      ::
-      ::  Notes:
-      ::  [1]
-      ::  https://github.com/urbit/urbit/blob/master/pkg/arvo/sys/hoon.hoon#L1536
-      ::
-      ++  union
-        |=  [a=(set @) b=(set @)]
-        |-  ^+  a
-        ?~  b
-          a
-        ?~  a
-          b
-        ?:  (mor n.a n.b)
-          ?:  =(n.b n.a)
-            [n.b $(a l.a, b l.b) $(a r.a, b r.b)]
-          ?:  (gor n.b n.a)
-            $(a [n.a $(a l.a, b [n.b l.b ~]) r.a], b r.b)
-          $(a [n.a l.a $(a r.a, b [n.b ~ r.b])], b l.b)
-        ?:  (gor n.a n.b)
-          $(b [n.b $(b l.b, a [n.a l.a ~]) r.b], a r.a)
-        $(b [n.b l.b $(b r.b, a [n.a ~ r.a])], a l.a)
-      --
 ::
 ::  Testing arms
 ::
 |%
-::  logical AND
+::  Test logical AND
 ::
 ++  test-set-all  ^-  tang
   =/  s-asc=(set @)   (sy (gulf 1 7))
@@ -52,28 +13,29 @@
     ::  Checks with empty set
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(all in ~) |=(* &))
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(all in ~) |=(* |))
     ::  Checks one element fails
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(all in (sy ~[1])) |=(e=@ =(e 43)))
     ::  Checks not all elements pass
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(all in s-asc) |=(e=@ (lth e 4)))
     ::  Checks all element pass
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(all in s-asc) |=(e=@ (lth e 100)))
   ==
-::  logical OR
+::
+::  Test logical OR
 ::
 ++  test-set-any  ^-  tang
   =/  s-asc=(set @)   (sy (gulf 1 7))
@@ -81,31 +43,32 @@
     ::  Checks with empty set
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any in ~) |=(* &))
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any in ~) |=(* |))
     ::  Checks one element fails
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(any in (sy ~[1])) |=(e=@ =(e 43)))
     ::  Checks >1 element success
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(any in s-asc) |=(e=@ (lth e 4)))
     ::  Checks all element success
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(any in s-asc) |=(e=@ (lth e 100)))
   ==
-::  check correctness
+::
+::  Test check correctness
 ::
 ++  test-set-apt  ^-  tang
-  ::  manually constructed sets with predefined vertical/horizontal
+  ::  Manually constructed sets with predefined vertical/horizontal
   ::  ordering
   ::
   ::  for the following three elements (1, 2, 3) the vertical priorities are:
@@ -132,22 +95,39 @@
   ::  1 should be in the left brach and 3 in the right one.
   ::
   =/  balanced-a=(set @)    [2 [1 ~ ~] [3 ~ ~]]
-  ::  doesn't follow vertical ordering
+  ::  Doesn't follow vertical ordering
   ::
   =/  unbalanced-a=(set @)  [1 [2 ~ ~] [3 ~ ~]]
-  ::  doesn't follow horizontal ordering
+  =/  unbalanced-b=(set @)  [1 ~ [2 ~ ~]]
+  =/  unbalanced-c=(set @)  [1 [2 ~ ~] ~]
+  ::  Doesn't follow horizontal ordering
   ::
-  =/  unbalanced-b=(set @)  [2 [3 ~ ~] [1 ~ ~]]
-  ::  doesn't follow horizontal & vertical ordering
+  =/  unbalanced-d=(set @)  [2 [3 ~ ~] [1 ~ ~]]
+  ::  Doesn't follow horizontal & vertical ordering
   ::
-  =/  unbalanced-c=(set @)  [1 [3 ~ ~] [2 ~ ~]]
+  =/  unbalanced-e=(set @)  [1 [3 ~ ~] [2 ~ ~]]
   ;:  weld
-    (expect-eq !>(b-a+%.y) !>(b-a+~(apt in balanced-a)))
-    (expect-eq !>(u-a+%.n) !>(u-a+~(apt in unbalanced-a)))
-    (expect-eq !>(u-b+%.n) !>(u-b+~(apt in unbalanced-b)))
-    (expect-eq !>(u-c+%.n) !>(u-c+~(apt in unbalanced-c)))
+    %+  expect-eq
+      !>  [%b-a %.y]
+      !>  [%b-a ~(apt in balanced-a)]
+    %+  expect-eq
+      !>  [%u-a %.n]
+      !>  [%u-a ~(apt in unbalanced-a)]
+    %+  expect-eq
+      !>  [%u-b %.n]
+      !>  [%u-b ~(apt in unbalanced-b)]
+    %+  expect-eq
+      !>  [%u-c %.n]
+      !>  [%u-c ~(apt in unbalanced-c)]
+    %+  expect-eq
+      !>  [%u-d %.n]
+      !>  [%u-d ~(apt in unbalanced-d)]
+    %+  expect-eq
+      !>  [%u-e %.n]
+      !>  [%u-e ~(apt in unbalanced-e)]
   ==
-::  splits a in b
+::
+::  Test splits a in b
 ::
 ++  test-set-bif  ^-  tang
   =/  s-asc=(set @)   (sy (gulf 1 7))
@@ -162,7 +142,7 @@
       !>  (~(bif in s-nul) 1)
     ::  Checks bifurcating in non-existing element
     ::
-    ::  The traversal of the +map is done comparing the 2x +mug
+    ::  The traversal of the +map is done comparing the double +mug
     ::  of the added node and the existing one from the tree.
     ::  Because of this, the search will stop at different leaves,
     ::  based on the value of the hash, therefore the right and left
@@ -192,7 +172,8 @@
       !>  %.n
       !>  &(left right)
   ==
-:: b without any a
+::
+:: Test b without any a
 ::
 ++  test-set-del  ^-  tang
   =/  s-asc=(set @)   (sy (gulf 1 7))
@@ -218,7 +199,8 @@
       !>  (sy (gulf 1 6))
       !>  (~(del in s-asc) 7)
   ==
-::  difference
+::
+::  Test difference
 ::
 ++  test-set-dif  ^-  tang
   =/  s-des=(set @)   (sy (flop (gulf 1 7)))
@@ -249,10 +231,12 @@
       !>  s-dos
       !>  (~(dif in (sy ~[1 8 9])) s-asc)
   ==
-::  axis of a in b
+::
+::  Test axis of a in b
 ::
 ++  test-set-dig  ^-  tang
   =/  custom  [2 [1 ~ ~] [3 ~ ~]]
+  =/  custom-vase  !>(custom)
   =/  manual-set=(set @)  custom
   ;:  weld
     ::  Checks with empty map
@@ -265,24 +249,25 @@
     %+  expect-eq
       !>  ~
       !>  (~(dig in manual-set) 9)
-    ::  Checks success via tree addressing. We use the return axis
+    ::  Checks success via tree addressing. It uses the returned axis
     ::  to address the raw noun and check that it gives the corresponding
-    ::  from the key.
+    ::  value.
     ::
     %+  expect-eq
       !>  1
-      !>  +:(slot (need (~(dig in manual-set) 1)) !>(custom))
+      !>  +:(slot (need (~(dig in manual-set) 1)) custom-vase)
     %+  expect-eq
       !>  2
-      !>  +:(slot (need (~(dig in manual-set) 2)) !>(custom))
+      !>  +:(slot (need (~(dig in manual-set) 2)) custom-vase)
     %+  expect-eq
       !>  3
-      !>  +:(slot (need (~(dig in manual-set) 3)) !>(custom))
+      !>  +:(slot (need (~(dig in manual-set) 3)) custom-vase)
   ==
-::  concatenate
+::
+::  Test concatenate
 ::
 ++  test-set-gas  ^-  tang
-  ::  we use +apt to check the correctness
+  ::  Uses +apt to check the correctness
   ::  of the sets created with +gas
   ::
   =+  |%
@@ -306,12 +291,12 @@
     ::  Checks with all tests in the suite
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  actual
     ::  Checks appending >1 elements
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  ~(apt in (~(gas in s-dos) ~[9 10]))
     ::  Checks concatenating existing elements
     ::
@@ -319,41 +304,31 @@
       !>  s-asc
       !>  (~(gas in s-asc) (gulf 1 3))
   ==
-::  +has: does :b exist in :a?
+::
+::  Test +has: does :b exist in :a?
 ::
 ++  test-set-has  ^-  tang
-  ::  wrap extracted item type in a unit because bunting fails
-  ::
-  ::    If we used the real item type of _?^(a n.a !!) as the sample type,
-  ::    then hoon would bunt it to create the default sample for the gate.
-  ::
-  ::    However, bunting that expression fails if :a is ~. If we wrap it
-  ::    in a unit, the bunted unit doesn't include the bunted item type.
-  ::
-  ::    This way we can ensure type safety of :b without needing to perform
-  ::    this failing bunt. It's a hack.
-  ::
   =/  s-nul=(set @)  *(set @)
   =/  s-asc=(set @)  (sy (gulf 1 7))
   ;:  weld
     ::  Checks with empty set
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(has in s-nul) 6)
     ::  Checks with non-existing key
     ::
     %+  expect-eq
-      !>  |
+      !>  %.n
       !>  (~(has in s-asc) 9)
     ::  Checks success
     ::
     %+  expect-eq
-      !>  &
+      !>  %.y
       !>  (~(has in s-asc) 7)
   ==
 ::
-::  intersection
+::  Test intersection
 ::
 ++  test-set-int  ^-  tang
   =/  s-nul=(set @)  *(set @)
@@ -387,8 +362,7 @@
       !>  (~(int in s-dos) s-dup)
   ==
 ::
-::  puts b in a, sorted
-::
+::  Test puts b in a, sorted
 ::
 ++  test-set-put  ^-  tang
   =/  s-nul=(set @)  *(set @)
@@ -410,7 +384,7 @@
       !>  (sy (gulf 1 8))
       !>  (~(put in s-asc) 8)
   ==
-::  replace in product
+::  Test replace in product
 ::
 ++  test-set-rep  ^-  tang
   =/  s-nul=(set @)  *(set @)
@@ -428,7 +402,7 @@
       !>  (~(rep in s-asc) add)
   ==
 ::
-::  apply gate to values
+::  Test apply gate to values
 ::
 ++  test-set-run  ^-  tang
   =/  s-nul  *(set @)
@@ -491,7 +465,7 @@
     =/  a=(set @)  (sy (scag 4 asc))
     =/  b=(set @)  (sy (slag 4 asc))
     %+  expect-eq
-      !>  (list-to-set asc)
+      !>  s-asc
       !>  (~(uni in a) b)
     ::  Checks union with equal sets
     ::
@@ -503,59 +477,28 @@
     %+  expect-eq
       !>  s-asc
       !>  (~(uni in s-asc) (sy (gulf 1 3)))
-    ::
-    ::  Tests for the +union arm
-    ::
-    ::  Checks with empty map (a or b)
-    ::
-    %+  expect-eq
-      !>  s-des
-      !>  (union s-nul s-des)
-    %+  expect-eq
-      !>  s-des
-      !>  (union s-des s-nul)
-    ::  Checks with no intersection
-    ::
-    =/  a=(set @)  (sy (scag 4 asc))
-    =/  b=(set @)  (sy (slag 4 asc))
-    %+  expect-eq
-      !>  (list-to-set asc)
-      !>  (union a b)
-    ::  Checks union with equal sets
-    ::
-    %+  expect-eq
-      !>  s-asc
-      !>  (union s-asc s-des)
-    ::  Checks union with partial intersection
-    ::
-    %+  expect-eq
-      !>  s-asc
-      !>  (union s-asc (sy (gulf 1 3)))
   ==
 ::
 ::  Tests the size of set
 ::
 ++  test-set-wyt  ^-  tang
-  ::  We ran all the tests in the suite
-  ::
   =+  |%
-      +|  %actual
-      ++  s-uno  (list-to-set (limo ~[42]))
-      ++  s-dos  (list-to-set (limo ~[6 9]))
-      ++  s-tre  (list-to-set (limo ~[1 0 1]))
-      ++  s-asc  (list-to-set (limo ~[1 2 3 4 5 6 7]))
-      ++  s-des  (list-to-set (limo ~[7 6 5 4 3 2 1]))
-      ++  s-uns  (list-to-set (limo ~[1 6 3 5 7 2 4]))
-      ++  s-dup  (list-to-set (limo ~[1 1 7 4 6 9 4]))
-      ++  s-nul  (list-to-set (limo ~))
-      ++  s-lis  (limo ~[s-nul s-uno s-dos s-tre s-asc s-des s-uns s-dup])
-      +|  %expected
-      ++  wyt-expected   (limo ~[0 1 2 2 7 7 7 5])
+      ++  s-uno  (~(gas in *(set)) ~[42])
+      ++  s-dos  (~(gas in *(set)) ~[6 9])
+      ++  s-tre  (~(gas in *(set)) ~[1 0 1])
+      ++  s-asc  (~(gas in *(set)) ~[1 2 3 4 5 6 7])
+      ++  s-des  (~(gas in *(set)) ~[7 6 5 4 3 2 1])
+      ++  s-uns  (~(gas in *(set)) ~[1 6 3 5 7 2 4])
+      ++  s-dup  (~(gas in *(set)) ~[1 1 7 4 6 9 4])
+      ++  s-nul  (~(gas in *(set)) ~)
+      ++  s-lis  ~[s-nul s-uno s-dos s-tre s-asc s-des s-uns s-dup]
       --
+  ::  Runs all the tests in the suite
+  ::
   =/  sizes=(list @)
     %+  turn  s-lis
-      |=(s=(set @) ~(wyt in s))
+      |=(s=(set) ~(wyt in s))
   %+  expect-eq
     !>  sizes
-    !>  wyt-expected
+    !>  (limo ~[0 1 2 2 7 7 7 5])
 --

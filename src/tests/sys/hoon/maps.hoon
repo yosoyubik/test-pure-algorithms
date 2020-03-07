@@ -13,6 +13,48 @@
       %+  turn  l
         |=  k=@
         [k (mul 2 k)]
+    ::
+    ++  new-by                                                  ::  map engine
+      ~/  %by
+      =|  a=(tree (pair))  ::  (map)
+      =*  node  ?>(?=(^ a) n.a)
+      |@
+      ++  apt                                               ::  check correctness
+        =|  [l=(unit) r=(unit)]
+        =/  keys=(set)  key
+        ~&  [a keys]
+        ~&  ~(wyt in keys)
+        ~&  (lent val)
+        ?.  =(~(wyt in key) (lent val))  |
+        |-  ^-  ?
+        ?~  a   &
+        ?&  ?~(l & (gor p.n.a u.l))
+            ?~(r & (gor u.r p.n.a))
+            ?~(l.a & ?&((mor p.n.a p.n.l.a) $(a l.a, l `p.n.a)))
+            ?~(r.a & ?&((mor p.n.a p.n.r.a) $(a r.a, r `p.n.a)))
+        ==
+      ::
+      ++  tap                                               ::  listify pairs
+        =<  $
+        ~/  %tap
+        =+  b=`(list _?>(?=(^ a) n.a))`~
+        |.  ^+  b
+        ?~  a
+          b
+        $(a r.a, b [n.a $(a l.a)])
+      ::
+      ++  key                                               ::  set of keys
+        =+  b=`(set _?>(?=(^ a) p.n.a))`~
+        |-  ^+  b
+        ?~  a   b
+        $(a r.a, b $(a l.a, b (~(put in b) p.n.a)))
+      ::
+      ++  val                                               ::  list of vals
+        =+  b=`(list _?>(?=(^ a) q.n.a))`~
+        |-  ^+  b
+        ?~  a   b
+        $(a r.a, b [q.n.a $(a l.a)])
+      --
     --
 ::
 =>  ::  Test Data
@@ -137,6 +179,9 @@
   ::  doesn't follow horizontal & vertical ordering
   ::
   =/  unbalanced-e=(map @ @)  [[1 1] [[3 3] ~ ~] [[2 2] ~ ~]]
+  ::  has duplicate keys
+  ::
+  =/  duplicates=(map @ @)  [[1 1] [[1 2] ~ ~] ~]
   ;:  weld
     %+  expect-eq
       !>  [%b-a %.y]
@@ -156,6 +201,12 @@
     %+  expect-eq
       !>  [%u-e %.n]
       !>  [%u-e ~(apt by unbalanced-e)]
+    %+  expect-eq
+      !>  [%u-f %.n]
+      !>  [%u-f ~(apt by duplicated)]
+    %+  expect-eq
+      !>  [%u-f %.n]
+      !>  [%u-f ~(apt new-by duplicates)]
   ==
 ::
 ::  Test bifurcation (i.e. splits map a into two, discarding -.a)
